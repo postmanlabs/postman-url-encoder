@@ -1,0 +1,27 @@
+{
+  "name": "postman-url-encoding",
+  "version": "1.0.0",
+  "description": " It encodes the given url string as per RFC 3986.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha unit-test.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/postmanlabs/postman-url-encoding.git"
+  },
+  "keywords": [
+    "postman",
+    "url-encoding"
+  ],
+  "author": "Postman Labs <help@getpostman.com> (=)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/postmanlabs/postman-url-encoding/issues"
+  },
+  "homepage": "https://github.com/postmanlabs/postman-url-encoding#readme",
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^3.0.0"
+  }
+}
