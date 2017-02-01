@@ -1,5 +1,5 @@
 {
-  "name": "postman-url-encoding",
+  "name": "postman-url-encoder",
   "version": "1.0.0",
   "description": " It encodes the given url string as per RFC 3986.",
   "main": "index.js",

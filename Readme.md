@@ -1,4 +1,6 @@
-# Postman URL encoding - Simple url string encoder based on RFC RFC 3986
+# Postman URL encoding
+
+## Simple url string encoder based on RFC 3986
 
 
 ```js
