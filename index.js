@@ -1,4 +1,6 @@
-var  /**
+var punycode = require('punycode'),
+
+    /**
      * @private
      * @const
      * @type {String}
@@ -10,7 +12,29 @@ var  /**
      * @const
      * @type {string}
      */
-    ZERO = '0';
+    ZERO = '0',
+
+    /**
+     * These characters do not need escaping when encoding strings:
+     * - . _ ~
+     * digits
+     * alpha (uppercase)
+     * alpha (lowercase)
+     *
+     * @private
+     * @const
+     * @type {Number[]}
+     */
+    noEscape = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 15
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, // 32 - 47
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48 - 63
+        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, // 80 - 95
+        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0  // 112 - 127
+    ];
 
 module.exports = {
 
@@ -35,23 +59,57 @@ module.exports = {
            (byte >= 0x61 && byte <= 0x66);     // a-f
     },
 
-    charactersToPercentEncode: function(byte) {
+    charactersToPercentEncodeForFixture: function(byte) {
         return (byte < 0x23 || byte > 0x7E || // Below # and after ~
             byte === 0x3C || byte === 0x3E || // > and <
             byte === 0x28 || byte === 0x29 || // ( and )
             byte === 0x25 || // %
             byte === 0x27 || // '
             byte === 0x2A    // *
-      );
+        );
     },
 
-  /**
-   * Percent encode a query string according to RFC 3986
-   *
-   * @param value
-   * @returns {string}
-   */
+    charactersToPercentEncode: function(byte) {
+        if (byte < 0x80) return !Boolean(noEscape[byte]);
+
+        return true;
+    },
+
+    /**
+     * Percent encode a query string according to RFC 3986.
+     * Note: This function is supposed to be used on top of node's inbuilt url encoding
+     *       to solve issue https://github.com/nodejs/node/issues/8321
+     *
+     * @param value
+     * @returns {String}
+     */
     encode: function (value) {
+        if (!value) { return ''; }
+
+        var buffer = new Buffer(value),
+            ret = '',
+            i;
+
+        for (i = 0; i < buffer.length; ++i) {
+
+            if (this.charactersToPercentEncodeForFixture(buffer[i]) && !this.isPreEncoded(buffer, i)) {
+                ret += this.percentEncode(buffer[i]);
+            }
+            else {
+                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
+            }
+        }
+
+        return ret;
+    },
+
+    /**
+     * Percent encode a given string according to RFC 3986.
+     *
+     * @param value
+     * @returns {String}
+     */
+    encodeString: function (value) {
         if (!value) { return ''; }
 
         var buffer = new Buffer(value),
@@ -69,5 +127,17 @@ module.exports = {
         }
 
         return ret;
+    },
+
+    /**
+     * Does punycode encoding of hostName according to RFC 3492 and RFC 5891
+     *
+     * @param hostName
+     * @returns {String}
+     */
+    encodeHostName: function (hostName) {
+        if (typeof hostName !== 'string') { return; }
+
+        return punycode.toASCII(hostName);
     }
 };
