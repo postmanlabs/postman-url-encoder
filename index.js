@@ -1,4 +1,89 @@
-var punycode = require('punycode'),
+var _ = require('lodash'),
+    punycode = require('punycode'),
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    E = '',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    PROTOCOL_SEPARATOR = '://',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    PROTOCOL_HTTP = 'http',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    DEFAULT_PROTOCOL = PROTOCOL_HTTP + PROTOCOL_SEPARATOR,
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    AUTH_SEPARATOR = ':',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    AUTH_CREDENTIALS_SEPARATOR = '@',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    PORT_SEPARATOR = ':',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    PATH_SEPARATOR = '/',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    QUERY_SEPARATOR = '?',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    SEARCH_SEPARATOR = '#',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    AMPERSAND = '&',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    EQUALS = '=',
 
     /**
      * @private
@@ -132,12 +217,109 @@ module.exports = {
     /**
      * Does punycode encoding of hostName according to RFC 3492 and RFC 5891
      *
-     * @param hostName
+     * @param {String} hostName
      * @returns {String}
      */
-    encodeHostName: function (hostName) {
+    encodeHost: function (hostName) {
         if (typeof hostName !== 'string') { return; }
 
         return punycode.toASCII(hostName);
+    },
+
+    /**
+     * Encodes individual url-path segments
+     *
+     * @param {String} path - complete unencoded path (ex. '/foo/bar')
+     * @returns {String}
+     */
+    encodePath: function (path) {
+        var segments = path.split('/');
+
+        _.forEach(segments, function (value, i) {
+            segments[i] = this.encodeString(value);
+        }.bind(this));
+
+        return segments.join(PATH_SEPARATOR);
+    },
+
+    /**
+     * Encodes query parameters and returns encoded query string
+     *
+     * @param {PropertyList<QueryParam>} query
+     * @param {Boolean} [ignoreDisabled=false]
+     * @returns {String}
+     */
+    encodeQuery: function (query, ignoreDisabled) {
+        return _.reduce(query.all(), function (result, param) {
+            if (ignoreDisabled && param.disabled === true) { return; }
+
+            var key = param.key,
+                value = param.value;
+
+            if (value === undefined) {
+                return result;
+            }
+
+            if (key === null) {
+                key = E;
+            }
+
+            result && (result += AMPERSAND);
+
+            if (value === null) {
+                return result + this.encodeString(key);
+            }
+
+            key = this.encodeString(key);
+            value = this.encodeString(value);
+
+            return result + key + EQUALS + value;
+        }.bind(this), E);
+    },
+
+    /**
+     * Unparses a {PostmanUrl} into an encoded URL string.
+     *
+     * @param {Url}
+     * @param {Boolean} [forceProtocol=false] - Forces the URL to have a protocol
+     * @returns {string}
+     */
+    encodeUrl: function (url, forceProtocol) {
+        var encodedUrl = E,
+            protocol = url.protocol;
+
+        forceProtocol && !protocol && (protocol = DEFAULT_PROTOCOL);
+
+        if (protocol) {
+            encodedUrl += (_.endsWith(protocol, PROTOCOL_SEPARATOR) ? protocol : protocol + PROTOCOL_SEPARATOR);
+        }
+
+        if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
+            encodedUrl = encodedUrl + ((url.auth.password) ?
+                // ==> username:password@
+                url.auth.user + AUTH_SEPARATOR + url.auth.password : url.auth.user) + AUTH_CREDENTIALS_SEPARATOR;
+        }
+
+        if (url.host) {
+            encodedUrl += this.encodeHost(url.getHost());
+        }
+
+        if (url.port) {
+            encodedUrl += PORT_SEPARATOR + url.port.toString();
+        }
+
+        if (url.path) {
+            encodedUrl += this.encodePath(url.getPath());
+        }
+
+        if (url.query && url.query.count()) {
+            encodedUrl += QUERY_SEPARATOR + this.encodeQuery(url.query, true);
+        }
+
+        if (url.hash) {
+            encodedUrl += SEARCH_SEPARATOR + url.hash;
+        }
+
+        return encodedUrl;
     }
 };

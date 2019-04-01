@@ -25,6 +25,7 @@
     "mocha": "^3.0.0"
   },
   "dependencies": {
+    "lodash": "^4.17.11",
     "punycode": "^2.1.1"
   }
 }
