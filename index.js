@@ -1,4 +1,5 @@
 var _ = require('lodash'),
+    url = require('url'),
     punycode = require('punycode'),
 
     /**
@@ -34,7 +35,7 @@ var _ = require('lodash'),
      * @const
      * @type {String}
      */
-    AUTH_SEPARATOR = ':',
+    COLON = ':',
 
     /**
      * @private
@@ -48,7 +49,7 @@ var _ = require('lodash'),
      * @const
      * @type {String}
      */
-    PORT_SEPARATOR = ':',
+    DOMAIN_SEPARATOR = '.',
 
     /**
      * @private
@@ -165,14 +166,14 @@ module.exports = {
      * Note: This function is supposed to be used on top of node's inbuilt url encoding
      *       to solve issue https://github.com/nodejs/node/issues/8321
      *
-     * @param value
+     * @param {String} value
      * @returns {String}
      */
     encode: function (value) {
-        if (!value) { return ''; }
+        if (!value) { return E; }
 
         var buffer = new Buffer(value),
-            ret = '',
+            ret = E,
             i;
 
         for (i = 0; i < buffer.length; ++i) {
@@ -191,14 +192,14 @@ module.exports = {
     /**
      * Percent encode a given string according to RFC 3986.
      *
-     * @param value
+     * @param {String} value
      * @returns {String}
      */
     encodeString: function (value) {
-        if (!value) { return ''; }
+        if (!value) { return E; }
 
         var buffer = new Buffer(value),
-            ret = '',
+            ret = E,
             i;
 
         for (i = 0; i < buffer.length; ++i) {
@@ -217,11 +218,13 @@ module.exports = {
     /**
      * Does punycode encoding of hostName according to RFC 3492 and RFC 5891
      *
-     * @param {String} hostName
+     * @param {String|String[]} hostName
      * @returns {String}
      */
     encodeHost: function (hostName) {
-        if (typeof hostName !== 'string') { return; }
+        if (_.isArray(hostName)) {
+            hostName = hostName.join(DOMAIN_SEPARATOR);
+        }
 
         return punycode.toASCII(hostName);
     },
@@ -229,11 +232,15 @@ module.exports = {
     /**
      * Encodes individual url-path segments
      *
-     * @param {String} path - complete unencoded path (ex. '/foo/bar')
+     * @param {String|String[]} path - complete unencoded path (ex. '/foo/bar')
      * @returns {String}
      */
     encodePath: function (path) {
-        var segments = path.split('/');
+        var segments = path;
+
+        if (typeof segments === 'string') {
+            segments = segments.split(PATH_SEPARATOR);
+        }
 
         _.forEach(segments, function (value, i) {
             segments[i] = this.encodeString(value);
@@ -250,6 +257,10 @@ module.exports = {
      * @returns {String}
      */
     encodeQuery: function (query, ignoreDisabled) {
+        if (query && _.isFunction(query.all)) {
+            query = query.all();
+        }
+
         return _.reduce(query.all(), function (result, param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
@@ -280,7 +291,7 @@ module.exports = {
     /**
      * Unparses a {PostmanUrl} into an encoded URL string.
      *
-     * @param {Url}
+     * @param {PostmanUrl}
      * @param {Boolean} [forceProtocol=false] - Forces the URL to have a protocol
      * @returns {string}
      */
@@ -297,7 +308,7 @@ module.exports = {
         if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
             encodedUrl = encodedUrl + ((url.auth.password) ?
                 // ==> username:password@
-                url.auth.user + AUTH_SEPARATOR + url.auth.password : url.auth.user) + AUTH_CREDENTIALS_SEPARATOR;
+                url.auth.user + COLON + url.auth.password : url.auth.user) + AUTH_CREDENTIALS_SEPARATOR;
         }
 
         if (url.host) {
@@ -305,7 +316,7 @@ module.exports = {
         }
 
         if (url.port) {
-            encodedUrl += PORT_SEPARATOR + url.port.toString();
+            encodedUrl += COLON + url.port.toString();
         }
 
         if (url.path) {
@@ -317,9 +328,62 @@ module.exports = {
         }
 
         if (url.hash) {
-            encodedUrl += SEARCH_SEPARATOR + url.hash;
+            encodedUrl += SEARCH_SEPARATOR + this.encodeString(url.hash);
         }
 
         return encodedUrl;
+    },
+
+    /**
+     * Converts {PostmanUrl} object into Node's Url object with encoded values
+     *
+     * @param {PostmanUrl} url
+     * @returns {Url}
+     */
+    toNodeUrl: function (url) {
+        var nodeUrl = new url.Url();
+
+        if (url.protocol) {
+            nodeUrl.protocol = _.trimEnd(url.protocol, PROTOCOL_SEPARATOR) + COLON;
+            nodeUrl.slashes = _.endsWith(url.protocol, PROTOCOL_SEPARATOR);
+        } else {
+            nodeUrl.protocol = PROTOCOL_HTTP + COLON;
+            nodeUrl.slashes = true;
+        }
+
+        if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
+            nodeUrl.auth = ((url.auth.password) ?
+                // ==> username:password@
+                url.auth.user + COLON + url.auth.password : url.auth.user);
+        }
+
+        if (url.host) {
+            nodeUrl.hostname = this.encodeHost(url.getHost());
+            nodeUrl.host = nodeUrl.hostname;
+        } else {
+            nodeUrl.hostName = E;
+            nodeUrl.host = E;
+        }
+
+        if (url.port) {
+            nodeUrl.port = url.port.toString();
+            nodeUrl.host = nodeUrl.hostname + COLON + nodeUrl.port;
+        }
+
+        if (url.hash) {
+            nodeUrl.hash = SEARCH_SEPARATOR + this.encodeString(url.hash);
+        }
+
+        if (url.query && url.query.count()) {
+            nodeUrl.query = this.encodeQuery(url.query, true);
+            nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
+        }
+
+        if (url.path) {
+            nodeUrl.pathname = this.encodePath(url.getPath());
+            nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
+        }
+
+        nodeUrl.href = encodeUrl(url, true);
     }
 };
