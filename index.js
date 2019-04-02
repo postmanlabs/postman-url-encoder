@@ -1,5 +1,4 @@
 var _ = require('lodash'),
-    url = require('url'),
     punycode = require('punycode'),
 
     /**
@@ -124,12 +123,25 @@ var _ = require('lodash'),
 
 module.exports = {
 
+    /**
+     * Percent encode a character with given code.
+     *
+     * @param {Number} c - character code of the character to encode
+     * @returns {String} - percent encoding of given character
+     */
     percentEncode: function(c) {
         var hex = c.toString(16).toUpperCase();
         (hex.length === 1) && (hex = ZERO + hex);
         return PERCENT + hex;
     },
 
+    /**
+     * Checks if character at given index in the buffer is already percent encoded or not.
+     *
+     * @param {Buffer} buffer
+     * @param {Number} i
+     * @returns {Boolean}
+     */
     isPreEncoded: function(buffer, i) {
     // If it is % check next two bytes for percent encode characters
     // looking for pattern %00 - %FF
@@ -139,12 +151,24 @@ module.exports = {
           );
     },
 
+    /**
+     * Checks if character with given code is valid hexadecimal digit or not.
+     *
+     * @param {Number} byte
+     * @returns {Boolean}
+     */
     isPreEncodedCharacter: function(byte) {
         return (byte >= 0x30 && byte <= 0x39) ||  // 0-9
            (byte >= 0x41 && byte <= 0x46) ||  // A-F
            (byte >= 0x61 && byte <= 0x66);     // a-f
     },
 
+    /**
+     * Checks whether given character should be percent encoded or not for fixture.
+     *
+     * @param {Number} byte
+     * @returns {Boolean}
+     */
     charactersToPercentEncodeForFixture: function(byte) {
         return (byte < 0x23 || byte > 0x7E || // Below # and after ~
             byte === 0x3C || byte === 0x3E || // > and <
@@ -155,9 +179,17 @@ module.exports = {
         );
     },
 
+    /**
+     * Checks whether given character should be percent encoded or not according to RFC 3986.
+     *
+     * @param {Number} byte
+     * @returns {Boolean}
+     */
     charactersToPercentEncode: function(byte) {
+        // Look in noEscape table if given character is in range of ASCII
         if (byte < 0x80) return !Boolean(noEscape[byte]);
 
+        // Always encode non ASCII characters
         return true;
     },
 
@@ -242,6 +274,7 @@ module.exports = {
             segments = segments.split(PATH_SEPARATOR);
         }
 
+        // encode individual segments of path
         _.forEach(segments, function (value, i) {
             segments[i] = this.encodeString(value);
         }.bind(this));
@@ -293,7 +326,7 @@ module.exports = {
      *
      * @param {PostmanUrl}
      * @param {Boolean} [forceProtocol=false] - Forces the URL to have a protocol
-     * @returns {string}
+     * @returns {String}
      */
     encodeUrl: function (url, forceProtocol) {
         var encodedUrl = E,
@@ -341,14 +374,24 @@ module.exports = {
      * @returns {Url}
      */
     toNodeUrl: function (url) {
-        var nodeUrl = new url.Url();
+        var nodeUrl = {
+                protocol: PROTOCOL_HTTP + COLON,
+                slashes: true,
+                auth: null,
+                host: E,
+                port: E,
+                hostname: E,
+                hash: E,
+                search: E,
+                query: E,
+                pathname: PATH_SEPARATOR,
+                path: PATH_SEPARATOR,
+                href: E
+            };
 
         if (url.protocol) {
             nodeUrl.protocol = _.trimEnd(url.protocol, PROTOCOL_SEPARATOR) + COLON;
             nodeUrl.slashes = _.endsWith(url.protocol, PROTOCOL_SEPARATOR);
-        } else {
-            nodeUrl.protocol = PROTOCOL_HTTP + COLON;
-            nodeUrl.slashes = true;
         }
 
         if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
@@ -360,9 +403,6 @@ module.exports = {
         if (url.host) {
             nodeUrl.hostname = this.encodeHost(url.getHost());
             nodeUrl.host = nodeUrl.hostname;
-        } else {
-            nodeUrl.hostName = E;
-            nodeUrl.host = E;
         }
 
         if (url.port) {
@@ -383,6 +423,8 @@ module.exports = {
             nodeUrl.pathname = this.encodePath(url.getPath());
             nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
         }
+
+        nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
 
         nodeUrl.href = encodeUrl(url, true);
     }
