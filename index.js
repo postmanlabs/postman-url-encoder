@@ -204,7 +204,7 @@ module.exports = {
     encode: function (value) {
         if (!value) { return E; }
 
-        var buffer = new Buffer(value),
+        var buffer = Buffer.from(value),
             ret = E,
             i;
 
@@ -230,7 +230,7 @@ module.exports = {
     encodeString: function (value) {
         if (!value) { return E; }
 
-        var buffer = new Buffer(value),
+        var buffer = Buffer.from(value),
             ret = E,
             i;
 
@@ -425,7 +425,8 @@ module.exports = {
         }
 
         nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
+        nodeUrl.href = this.encodeUrl(url, true);
 
-        nodeUrl.href = encodeUrl(url, true);
+        return nodeUrl;
     }
 };
