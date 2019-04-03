@@ -303,11 +303,11 @@ module.exports = {
         }
 
         if (value === null) {
-            return urlEncoder.encodeString(key);
+            return this.encodeString(key);
         }
 
-        key = urlEncoder.encodeString(key);
-        value = urlEncoder.encodeString(value);
+        key = this.encodeString(key);
+        value = this.encodeString(value);
 
         return key + EQUALS + value;
     },
