@@ -283,41 +283,53 @@ module.exports = {
     },
 
     /**
-     * Encodes query parameters and returns encoded query string
+     * Encodes single query parameter and returns as a string
      *
-     * @param {PropertyList<QueryParam>} query
+     * @param {Object} param - example: {key:'foo1', value:'bar1'}
+     * @returns {String}
+     */
+    encodeQueryParam: function (param) {
+        if (!param) { return E; }
+
+        var key = param.key,
+            value = param.value;
+
+        if (value === undefined) {
+            return E;
+        }
+
+        if (key === null) {
+            key = E;
+        }
+
+        if (value === null) {
+            return urlEncoder.encodeString(key);
+        }
+
+        key = urlEncoder.encodeString(key);
+        value = urlEncoder.encodeString(value);
+
+        return key + EQUALS + value;
+    },
+
+    /**
+     * Encodes list of query parameters and returns encoded query string
+     *
+     * @param {Object[]} query - example: [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}]
      * @param {Boolean} [ignoreDisabled=false]
      * @returns {String}
      */
-    encodeQuery: function (query, ignoreDisabled) {
-        if (query && _.isFunction(query.all)) {
-            query = query.all();
-        }
+    encodeQueryParams: function (query, ignoreDisabled) {
+        if (!_.isArray(query)) { return E; }
 
         return _.reduce(query, function (result, param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
-            var key = param.key,
-                value = param.value;
+            var encoded = this.encodeQueryParam(param);
 
-            if (value === undefined) {
-                return result;
-            }
+            result && encoded && (result += AMPERSAND);
 
-            if (key === null) {
-                key = E;
-            }
-
-            result && (result += AMPERSAND);
-
-            if (value === null) {
-                return result + this.encodeString(key);
-            }
-
-            key = this.encodeString(key);
-            value = this.encodeString(value);
-
-            return result + key + EQUALS + value;
+            return result + encoded;
         }.bind(this), E);
     },
 
@@ -357,7 +369,7 @@ module.exports = {
         }
 
         if (url.query && url.query.count()) {
-            encodedUrl += QUERY_SEPARATOR + this.encodeQuery(url.query, true);
+            encodedUrl += QUERY_SEPARATOR + this.encodeQueryParams(url.query.all(), true);
         }
 
         if (url.hash) {
@@ -415,7 +427,7 @@ module.exports = {
         }
 
         if (url.query && url.query.count()) {
-            nodeUrl.query = this.encodeQuery(url.query, true);
+            nodeUrl.query = this.encodeQueryParams(url.query.all(), true);
             nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
         }
 
