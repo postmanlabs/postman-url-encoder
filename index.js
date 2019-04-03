@@ -194,6 +194,32 @@ module.exports = {
     },
 
     /**
+     * Percent encode a given string according to RFC 3986.
+     *
+     * @param {String} value
+     * @returns {String}
+     */
+    encodeString: function (value) {
+        if (!value) { return E; }
+
+        var buffer = Buffer.from(value),
+            ret = E,
+            i;
+
+        for (i = 0; i < buffer.length; ++i) {
+
+            if (this.charactersToPercentEncode(buffer[i]) && !this.isPreEncoded(buffer, i)) {
+                ret += this.percentEncode(buffer[i]);
+            }
+            else {
+                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
+            }
+        }
+
+        return ret;
+    },
+
+    /**
      * Percent encode a query string according to RFC 3986.
      * Note: This function is supposed to be used on top of node's inbuilt url encoding
      *       to solve issue https://github.com/nodejs/node/issues/8321
@@ -211,32 +237,6 @@ module.exports = {
         for (i = 0; i < buffer.length; ++i) {
 
             if (this.charactersToPercentEncodeForFixture(buffer[i]) && !this.isPreEncoded(buffer, i)) {
-                ret += this.percentEncode(buffer[i]);
-            }
-            else {
-                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
-            }
-        }
-
-        return ret;
-    },
-
-    /**
-     * Percent encode a given string according to RFC 3986.
-     *
-     * @param {String} value
-     * @returns {String}
-     */
-    encodeString: function (value) {
-        if (!value) { return E; }
-
-        var buffer = Buffer.from(value),
-            ret = E,
-            i;
-
-        for (i = 0; i < buffer.length; ++i) {
-
-            if (this.charactersToPercentEncode(buffer[i]) && !this.isPreEncoded(buffer, i)) {
                 ret += this.percentEncode(buffer[i]);
             }
             else {
