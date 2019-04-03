@@ -294,7 +294,7 @@ module.exports = {
             query = query.all();
         }
 
-        return _.reduce(query.all(), function (result, param) {
+        return _.reduce(query, function (result, param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
             var key = param.key,
