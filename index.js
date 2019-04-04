@@ -1,5 +1,4 @@
-var _ = require('lodash'),
-    punycode = require('punycode'),
+var punycode = require('punycode'),
 
     /**
      * @private
@@ -119,9 +118,11 @@ var _ = require('lodash'),
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, // 80 - 95
         0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0  // 112 - 127
-    ];
+    ],
 
-module.exports = {
+    encoder;
+
+encoder = {
 
     /**
      * Percent encode a character with given code.
@@ -146,8 +147,8 @@ module.exports = {
     // If it is % check next two bytes for percent encode characters
     // looking for pattern %00 - %FF
         return (buffer[i] === 0x25 &&
-            (this.isPreEncodedCharacter(buffer[i + 1]) &&
-             this.isPreEncodedCharacter(buffer[i + 2]))
+            (encoder.isPreEncodedCharacter(buffer[i + 1]) &&
+            encoder.isPreEncodedCharacter(buffer[i + 2]))
           );
     },
 
@@ -200,16 +201,17 @@ module.exports = {
      * @returns {String}
      */
     encodeString: function (value) {
-        if (!value) { return E; }
+        if (!(value && typeof value === 'string')) { return E; }
 
         var buffer = Buffer.from(value),
             ret = E,
-            i;
+            i,
+            ii;
 
-        for (i = 0; i < buffer.length; ++i) {
+        for (i = 0, ii = buffer.length; i < ii; ++i) {
 
-            if (this.charactersToPercentEncode(buffer[i]) && !this.isPreEncoded(buffer, i)) {
-                ret += this.percentEncode(buffer[i]);
+            if (encoder.charactersToPercentEncode(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
+                ret += encoder.percentEncode(buffer[i]);
             }
             else {
                 ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
@@ -228,16 +230,17 @@ module.exports = {
      * @returns {String}
      */
     encode: function (value) {
-        if (!value) { return E; }
+        if (!(value && typeof value === 'string')) { return E; }
 
         var buffer = Buffer.from(value),
             ret = E,
-            i;
+            i,
+            ii;
 
-        for (i = 0; i < buffer.length; ++i) {
+        for (i = 0, ii = buffer.length; i < ii; ++i) {
 
-            if (this.charactersToPercentEncodeForFixture(buffer[i]) && !this.isPreEncoded(buffer, i)) {
-                ret += this.percentEncode(buffer[i]);
+            if (encoder.charactersToPercentEncodeForFixture(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
+                ret += encoder.percentEncode(buffer[i]);
             }
             else {
                 ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
@@ -254,7 +257,9 @@ module.exports = {
      * @returns {String}
      */
     encodeHost: function (hostName) {
-        if (_.isArray(hostName)) {
+        if (!hostName) { return E; }
+
+        if (Array.isArray(hostName)) {
             hostName = hostName.join(DOMAIN_SEPARATOR);
         }
 
@@ -268,18 +273,20 @@ module.exports = {
      * @returns {String}
      */
     encodePath: function (path) {
-        var segments = path;
+        if (typeof path === 'string') {
+            path = path.split(PATH_SEPARATOR);
+        }
 
-        if (typeof segments === 'string') {
-            segments = segments.split(PATH_SEPARATOR);
+        if (!(Array.isArray(path) && path.length)) {
+            return E;
         }
 
         // encode individual segments of path
-        _.forEach(segments, function (value, i) {
-            segments[i] = this.encodeString(value);
-        }.bind(this));
+        path = path.map(function (segment) {
+            return encoder.encodeString(segment);
+        });
 
-        return segments.join(PATH_SEPARATOR);
+        return path.join(PATH_SEPARATOR);
     },
 
     /**
@@ -294,20 +301,20 @@ module.exports = {
         var key = param.key,
             value = param.value;
 
-        if (value === undefined) {
-            return E;
-        }
-
-        if (key === null) {
+        if (key === undefined || key === null) {
             key = E;
         }
 
-        if (value === null) {
-            return this.encodeString(key);
+        if (value === undefined || value === null) {
+            value = E;
         }
 
-        key = this.encodeString(key);
-        value = this.encodeString(value);
+        if (key === E && value === E) {
+            return E;
+        }
+
+        key = encoder.encodeString(key);
+        value = encoder.encodeString(value);
 
         return key + EQUALS + value;
     },
@@ -315,22 +322,36 @@ module.exports = {
     /**
      * Encodes list of query parameters and returns encoded query string
      *
-     * @param {Object[]} query - example: [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}]
+     * @param {Object|Object[]} params - example: [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}]
      * @param {Boolean} [ignoreDisabled=false]
      * @returns {String}
      */
-    encodeQueryParams: function (query, ignoreDisabled) {
-        if (!_.isArray(query)) { return E; }
+    encodeQueryParams: function (params, ignoreDisabled) {
+        var result = E;
 
-        return _.reduce(query, function (result, param) {
+        if (!Array.isArray(params)) {
+            if (!(params && typeof params === 'object')) { return E; }
+
+            Object.keys(params).forEach(function (key) {
+                var encoded = encoder.encodeQueryParam({ key: key, value: params[key] });
+
+                result && encoded && (result += AMPERSAND);
+                result += encoded;
+            });
+
+            return result;
+        }
+
+        params.forEach(function (param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
-            var encoded = this.encodeQueryParam(param);
+            var encoded = encoder.encodeQueryParam(param);
 
             result && encoded && (result += AMPERSAND);
+            result += encoded;
+        });
 
-            return result + encoded;
-        }.bind(this), E);
+        return result;
     },
 
     /**
@@ -341,13 +362,15 @@ module.exports = {
      * @returns {String}
      */
     encodeUrl: function (url, forceProtocol) {
+        if (!(url && typeof url === 'object')) { return E; }
+
         var encodedUrl = E,
             protocol = url.protocol;
 
         forceProtocol && !protocol && (protocol = DEFAULT_PROTOCOL);
 
         if (protocol) {
-            encodedUrl += (_.endsWith(protocol, PROTOCOL_SEPARATOR) ? protocol : protocol + PROTOCOL_SEPARATOR);
+            encodedUrl += (protocol.endsWith(PROTOCOL_SEPARATOR) ? protocol : protocol + PROTOCOL_SEPARATOR);
         }
 
         if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
@@ -357,7 +380,7 @@ module.exports = {
         }
 
         if (url.host) {
-            encodedUrl += this.encodeHost(url.getHost());
+            encodedUrl += encoder.encodeHost(url.getHost());
         }
 
         if (url.port) {
@@ -365,15 +388,15 @@ module.exports = {
         }
 
         if (url.path) {
-            encodedUrl += this.encodePath(url.getPath());
+            encodedUrl += encoder.encodePath(url.getPath());
         }
 
         if (url.query && url.query.count()) {
-            encodedUrl += QUERY_SEPARATOR + this.encodeQueryParams(url.query.all(), true);
+            encodedUrl += QUERY_SEPARATOR + encoder.encodeQueryParams(url.query.all(), true);
         }
 
         if (url.hash) {
-            encodedUrl += SEARCH_SEPARATOR + this.encodeString(url.hash);
+            encodedUrl += SEARCH_SEPARATOR + encoder.encodeString(url.hash);
         }
 
         return encodedUrl;
@@ -387,58 +410,67 @@ module.exports = {
      */
     toNodeUrl: function (url) {
         var nodeUrl = {
-                protocol: PROTOCOL_HTTP + COLON,
-                slashes: true,
+                protocol: null,
                 auth: null,
-                host: E,
-                port: E,
-                hostname: E,
-                hash: E,
-                search: E,
-                query: E,
+                host: null,
+                port: null,
+                hostname: null,
+                hash: null,
+                search: null,
+                query: null,
                 pathname: PATH_SEPARATOR,
                 path: PATH_SEPARATOR,
-                href: E
+                href: null
             };
 
+        if (!(url && typeof url === 'object')) { return nodeUrl; }
+
         if (url.protocol) {
-            nodeUrl.protocol = _.trimEnd(url.protocol, PROTOCOL_SEPARATOR) + COLON;
-            nodeUrl.slashes = _.endsWith(url.protocol, PROTOCOL_SEPARATOR);
+            // remove '://' from end of protocol if it is there
+            nodeUrl.protocol = url.protocol.replace(/:\/\/$/, '').toLowerCase();
+            nodeUrl.href = nodeUrl.protocol + PROTOCOL_SEPARATOR;
+            nodeUrl.protocol = nodeUrl.protocol + COLON;
         }
 
         if (url.auth && url.auth.user) { // If the user is not specified, ignore the password.
             nodeUrl.auth = ((url.auth.password) ?
                 // ==> username:password@
                 url.auth.user + COLON + url.auth.password : url.auth.user);
+            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
         }
 
         if (url.host) {
-            nodeUrl.hostname = this.encodeHost(url.getHost());
+            nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
             nodeUrl.host = nodeUrl.hostname;
+            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.hostName;
         }
 
         if (url.port) {
             nodeUrl.port = url.port.toString();
-            nodeUrl.host = nodeUrl.hostname + COLON + nodeUrl.port;
-        }
-
-        if (url.hash) {
-            nodeUrl.hash = SEARCH_SEPARATOR + this.encodeString(url.hash);
-        }
-
-        if (url.query && url.query.count()) {
-            nodeUrl.query = this.encodeQueryParams(url.query.all(), true);
-            nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
+            nodeUrl.host = (nodeUrl.hostname || E) + COLON + nodeUrl.port;
+            nodeUrl.href = (nodeUrl.href || E) + COLON + nodeUrl.port;
         }
 
         if (url.path) {
-            nodeUrl.pathname = this.encodePath(url.getPath());
-            nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
+            nodeUrl.pathname = encoder.encodePath(url.getPath());
+            nodeUrl.path = nodeUrl.pathname;
+            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.pathname;
         }
 
-        nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
-        nodeUrl.href = this.encodeUrl(url, true);
+        if (url.query && url.query.count()) {
+            nodeUrl.query = encoder.encodeQueryParams(url.query.all(), true);
+            nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
+            nodeUrl.path = (nodeUrl.pathname || E) + nodeUrl.search;
+            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
+        }
+
+        if (url.hash) {
+            nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeString(url.hash);
+            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
+        }
 
         return nodeUrl;
     }
 };
+
+module.exports = encoder;

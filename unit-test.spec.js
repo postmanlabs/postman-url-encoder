@@ -139,7 +139,7 @@ describe('Hostname Encoding', function () {
   describe('Encode', function () {
 
     it('domain with unicode text - "こんにちは.郵便配達員.com"', function () {
-      var encodedHostName = urlEncoder.encodeHostName('こんにちは.郵便配達員.com');
+      var encodedHostName = urlEncoder.encodeHost('こんにちは.郵便配達員.com');
       expect(encodedHostName).to.equal('xn--28j2a3ar1p.xn--wtqy8jqx5dmsazn.com');
     });
 
@@ -148,12 +148,12 @@ describe('Hostname Encoding', function () {
   describe('Do not encode', function () {
 
     it('domain with only ASCII text - "getpostman.com"', function () {
-      var encodedHostName = urlEncoder.encodeHostName('getpostman.com');
+      var encodedHostName = urlEncoder.encodeHost('getpostman.com');
       expect(encodedHostName).to.equal('getpostman.com');
     });
 
     it('pre-encoded domain with unicode text - "xn--28j2a3ar1p.xn--wtqy8jqx5dmsazn.com"', function () {
-      var encodedHostName = urlEncoder.encodeHostName('xn--28j2a3ar1p.xn--wtqy8jqx5dmsazn.com');
+      var encodedHostName = urlEncoder.encodeHost('xn--28j2a3ar1p.xn--wtqy8jqx5dmsazn.com');
       expect(encodedHostName).to.equal('xn--28j2a3ar1p.xn--wtqy8jqx5dmsazn.com');
     });
 
