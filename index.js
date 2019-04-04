@@ -99,25 +99,43 @@ var punycode = require('punycode'),
     ZERO = '0',
 
     /**
-     * These characters do not need escaping when encoding strings:
-     * + - . _ ~
-     * digits
-     * alpha (uppercase)
-     * alpha (lowercase)
+     * These characters needs to be encoded when encoding URL path.
+     * [0-31, 127] - non printable ASCII
+     * space " # % / < = > ? ^ ` { | }
      *
      * @private
      * @const
      * @type {Number[]}
      */
-    noEscape = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 15
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, // 32 - 47
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48 - 63
-        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, // 80 - 95
-        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0  // 112 - 127
+    defaultPathEscapeTable = [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
+        1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 32 - 47
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, // 48 - 63
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, // 80 - 95
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, // 112 - 127
+    ],
+
+    /**
+     * These characters needs to be encoded when encoding URL query.
+     * [0-31, 127] - non printable ASCII
+     * space " # % & ' < = > ? \ ^ `
+     *
+     * @private
+     * @const
+     * @type {Number[]}
+     */
+    defaultQueryEscapeTable = [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
+        1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, // 48 - 63
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, // 80 - 95
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 112 - 127
     ],
 
     encoder;
@@ -170,7 +188,7 @@ encoder = {
      * @param {Number} byte
      * @returns {Boolean}
      */
-    charactersToPercentEncodeForFixture: function(byte) {
+    charactersToPercentEncodeExtra: function(byte) {
         return (byte < 0x23 || byte > 0x7E || // Below # and after ~
             byte === 0x3C || byte === 0x3E || // > and <
             byte === 0x28 || byte === 0x29 || // ( and )
@@ -184,11 +202,17 @@ encoder = {
      * Checks whether given character should be percent encoded or not according to RFC 3986.
      *
      * @param {Number} byte
+     * @param {Number[]} [escapeTable=[]]
      * @returns {Boolean}
      */
-    charactersToPercentEncode: function(byte) {
+    charactersToPercentEncode: function(byte, escapeTable) {
+        !escapeTable && (escapeTable = []);
+
         // Look in noEscape table if given character is in range of ASCII
-        if (byte < 0x80) return !Boolean(noEscape[byte]);
+        if (byte < 0x80 && byte <= escapeTable.length) { return Boolean(escapeTable[byte]); }
+
+        // don't encode if character is in range of ASCII but not in range of given escapeTable
+        if (byte < 0x80) { return false; }
 
         // Always encode non ASCII characters
         return true;
@@ -198,10 +222,13 @@ encoder = {
      * Percent encode a given string according to RFC 3986.
      *
      * @param {String} value
+     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
      * @returns {String}
      */
-    encodeString: function (value) {
+    encodeString: function (value, escapeTable) {
         if (!(value && typeof value === 'string')) { return E; }
+
+        !escapeTable && (escapeTable = defaultQueryEscapeTable);
 
         var buffer = Buffer.from(value),
             ret = E,
@@ -210,7 +237,7 @@ encoder = {
 
         for (i = 0, ii = buffer.length; i < ii; ++i) {
 
-            if (encoder.charactersToPercentEncode(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
+            if (encoder.charactersToPercentEncode(buffer[i], escapeTable) && !encoder.isPreEncoded(buffer, i)) {
                 ret += encoder.percentEncode(buffer[i]);
             }
             else {
@@ -239,7 +266,7 @@ encoder = {
 
         for (i = 0, ii = buffer.length; i < ii; ++i) {
 
-            if (encoder.charactersToPercentEncodeForFixture(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
+            if (encoder.charactersToPercentEncodeExtra(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
                 ret += encoder.percentEncode(buffer[i]);
             }
             else {
@@ -270,9 +297,12 @@ encoder = {
      * Encodes individual url-path segments
      *
      * @param {String|String[]} path - complete unencoded path (ex. '/foo/bar')
+     * @param {Number[]} [escapeTable=defaultPathEscapeTable]
      * @returns {String}
      */
-    encodePath: function (path) {
+    encodePath: function (path, escapeTable) {
+        !escapeTable && (escapeTable = defaultPathEscapeTable);
+
         if (typeof path === 'string') {
             path = path.split(PATH_SEPARATOR);
         }
@@ -283,7 +313,7 @@ encoder = {
 
         // encode individual segments of path
         path = path.map(function (segment) {
-            return encoder.encodeString(segment);
+            return encoder.encodeString(segment, escapeTable);
         });
 
         return path.join(PATH_SEPARATOR);
@@ -293,10 +323,13 @@ encoder = {
      * Encodes single query parameter and returns as a string
      *
      * @param {Object} param - example: {key:'foo1', value:'bar1'}
+     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
      * @returns {String}
      */
-    encodeQueryParam: function (param) {
+    encodeQueryParam: function (param, escapeTable) {
         if (!param) { return E; }
+
+        !escapeTable && (escapeTable = defaultQueryEscapeTable);
 
         var key = param.key,
             value = param.value;
@@ -313,8 +346,8 @@ encoder = {
             return E;
         }
 
-        key = encoder.encodeString(key);
-        value = encoder.encodeString(value);
+        key = encoder.encodeString(key, escapeTable);
+        value = encoder.encodeString(value, escapeTable);
 
         return key + EQUALS + value;
     },
@@ -324,16 +357,19 @@ encoder = {
      *
      * @param {Object|Object[]} params - example: [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}]
      * @param {Boolean} [ignoreDisabled=false]
+     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
      * @returns {String}
      */
-    encodeQueryParams: function (params, ignoreDisabled) {
+    encodeQueryParams: function (params, ignoreDisabled, escapeTable) {
+        !escapeTable && (escapeTable = defaultQueryEscapeTable);
+
         var result = E;
 
         if (!Array.isArray(params)) {
             if (!(params && typeof params === 'object')) { return E; }
 
             Object.keys(params).forEach(function (key) {
-                var encoded = encoder.encodeQueryParam({ key: key, value: params[key] });
+                var encoded = encoder.encodeQueryParam({ key: key, value: params[key] }, escapeTable);
 
                 result && encoded && (result += AMPERSAND);
                 result += encoded;
@@ -345,7 +381,7 @@ encoder = {
         params.forEach(function (param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
-            var encoded = encoder.encodeQueryParam(param);
+            var encoded = encoder.encodeQueryParam(param, escapeTable);
 
             result && encoded && (result += AMPERSAND);
             result += encoded;
@@ -359,10 +395,15 @@ encoder = {
      *
      * @param {PostmanUrl}
      * @param {Boolean} [forceProtocol=false] - Forces the URL to have a protocol
+     * @param {Number[]} [pathEscapeTable=defaultPathEscapeTable]
+     * @param {Number[]} [queryEscapeTable=defaultQueryEscapeTable]
      * @returns {String}
      */
-    encodeUrl: function (url, forceProtocol) {
+    encodeUrl: function (url, forceProtocol, pathEscapeTable, queryEscapeTable) {
         if (!(url && typeof url === 'object')) { return E; }
+
+        !pathEscapeTable && (pathEscapeTable = defaultPathEscapeTable);
+        !queryEscapeTable && (queryEscapeTable = defaultQueryEscapeTable);
 
         var encodedUrl = E,
             protocol = url.protocol;
@@ -388,15 +429,15 @@ encoder = {
         }
 
         if (url.path) {
-            encodedUrl += encoder.encodePath(url.getPath());
+            encodedUrl += encoder.encodePath(url.getPath(), pathEscapeTable);
         }
 
         if (url.query && url.query.count()) {
-            encodedUrl += QUERY_SEPARATOR + encoder.encodeQueryParams(url.query.all(), true);
+            encodedUrl += QUERY_SEPARATOR + encoder.encodeQueryParams(url.query.all(), true, queryEscapeTable);
         }
 
         if (url.hash) {
-            encodedUrl += SEARCH_SEPARATOR + encoder.encodeString(url.hash);
+            encodedUrl += SEARCH_SEPARATOR + url.hash;
         }
 
         return encodedUrl;
@@ -406,9 +447,14 @@ encoder = {
      * Converts {PostmanUrl} object into Node's Url object with encoded values
      *
      * @param {PostmanUrl} url
+     * @param {Number[]} [pathEscapeTable=defaultPathEscapeTable]
+     * @param {Number[]} [queryEscapeTable=defaultQueryEscapeTable]
      * @returns {Url}
      */
-    toNodeUrl: function (url) {
+    toNodeUrl: function (url, pathEscapeTable, queryEscapeTable) {
+        !pathEscapeTable && (pathEscapeTable = defaultPathEscapeTable);
+        !queryEscapeTable && (queryEscapeTable = defaultQueryEscapeTable);
+
         var nodeUrl = {
                 protocol: null,
                 auth: null,
@@ -452,20 +498,20 @@ encoder = {
         }
 
         if (url.path) {
-            nodeUrl.pathname = encoder.encodePath(url.getPath());
+            nodeUrl.pathname = encoder.encodePath(url.getPath(), pathEscapeTable);
             nodeUrl.path = nodeUrl.pathname;
             nodeUrl.href = (nodeUrl.href || E) + nodeUrl.pathname;
         }
 
         if (url.query && url.query.count()) {
-            nodeUrl.query = encoder.encodeQueryParams(url.query.all(), true);
+            nodeUrl.query = encoder.encodeQueryParams(url.query.all(), true, queryEscapeTable);
             nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
             nodeUrl.path = (nodeUrl.pathname || E) + nodeUrl.search;
             nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
         }
 
         if (url.hash) {
-            nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeString(url.hash);
+            nodeUrl.hash = SEARCH_SEPARATOR + url.hash;
             nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
         }
 
