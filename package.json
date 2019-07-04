@@ -4,7 +4,9 @@
   "description": " It encodes the given url string as per RFC 3986.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha unit-test.spec.js"
+    "test": "mocha unit-test.spec.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,9 @@
     "expect.js": "^0.3.1",
     "mocha": "^3.0.0",
     "postman-collection": "^3.4.6"
+  },
+  "snyk": true,
+  "dependencies": {
+    "snyk": "^1.189.0"
   }
 }
