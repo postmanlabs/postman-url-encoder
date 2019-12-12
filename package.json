@@ -20,9 +20,12 @@
     "url": "https://github.com/postmanlabs/postman-url-encoder/issues"
   },
   "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
+  "dependencies": {
+    "postman-collection": "^3.5.5",
+    "punycode": "^2.1.1"
+  },
   "devDependencies": {
     "expect.js": "^0.3.1",
-    "mocha": "^3.0.0",
-    "postman-collection": "^3.5.4"
+    "mocha": "^3.0.0"
   }
 }
