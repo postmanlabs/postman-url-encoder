@@ -648,7 +648,7 @@ encoder = {
             }
             
             // protocol://user:password@
-            nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
+            nodeUrl.auth && (nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR);
         }
 
         // host
