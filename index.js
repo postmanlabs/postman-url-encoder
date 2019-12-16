@@ -1,5 +1,4 @@
 var url = require('url'),
-    punycode = require('punycode'),
     sdk = require('postman-collection'),
 
     /**
@@ -56,7 +55,7 @@ var url = require('url'),
      * @const
      * @type {String}
      */
-    PROTOCOL_SEPARATOR = '://',
+    PROTOCOL_SEPARATOR = '//',
 
     /**
      * @private
@@ -82,30 +81,29 @@ var url = require('url'),
     /**
      * @private
      * @const
-     * @type {string}
+     * @type {String}
      */
-    STRING = 'string',
+    DEFAULT_PROTOCOL = 'http',
 
     /**
      * @private
      * @const
-     * @type {string}
+     * @type {String}
      */
-    OBJECT = 'object',
-
-    parseQueryString,
-    stringifyQueryParams,
+    STRING = 'string',
 
     /**
      * These characters needs to be encoded when encoding auth in URL.
+     * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L466
+     *
      * [0-31, 127] - non printable ASCII
-     * space " # % / < = > ? ^ ` { | }
+     * space " # / : ; < = > ? @ [ \ ] ^ ` { | }
      *
      * @private
      * @const
      * @type {Number[]}
      */
-    defaultAuthEscapeTable = [
+    AUTH_ESCAPE_TABLE = [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
         1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 32 - 47
@@ -118,14 +116,16 @@ var url = require('url'),
 
     /**
      * These characters needs to be encoded when encoding URL path.
+     * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L399
+     *
      * [0-31, 127] - non printable ASCII
-     * space " # % / < = > ? ^ ` { | }
+     * space " # < > ? ` { }
      *
      * @private
      * @const
      * @type {Number[]}
      */
-    defaultPathEscapeTable = [
+    PATH_ESCAPE_TABLE = [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
         1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
@@ -138,14 +138,16 @@ var url = require('url'),
 
     /**
      * These characters needs to be encoded when encoding URL query.
+     * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L601
+     *
      * [0-31, 127] - non printable ASCII
-     * space " # % & ' < = > ? \ ^ `
+     * space " # ' < >
      *
      * @private
      * @const
      * @type {Number[]}
      */
-    defaultQueryEscapeTable = [
+    QUERY_ESCAPE_TABLE = [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
         1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
@@ -158,14 +160,16 @@ var url = require('url'),
 
     /**
      * These characters needs to be encoded when encoding hash in URL.
+     * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L331
+     *
      * [0-31, 127] - non printable ASCII
-     * space " # % / < = > ? ^ ` { | }
+     * space " < > `
      *
      * @private
      * @const
      * @type {Number[]}
      */
-    defaultHashEscapeTable = [
+    HASH_ESCAPE_TABLE = [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
         1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
@@ -176,15 +180,55 @@ var url = require('url'),
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 112 - 127
     ],
 
-    encoder;
+    /**
+     * Protocols that always contain a '//' in the end.
+     * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/lib/url.js#L91
+     *
+     * @private
+     * @const
+     * @type {Set}
+     */
+    SLASHED_PROTOCOLS = new Set([
+        'http:',
+        'https:',
+        'ftp:',
+        'gopher:',
+        'file:',
+        'ws:',
+        'wss:'
+    ]),
+
+    encoder,
+    isPreEncoded,
+    legacyEncoder,
+    domainToASCII,
+    percentEncode,
+    parseQueryString,
+    stringifyQueryParams,
+    isPreEncodedCharacter,
+    charactersToPercentEncode,
+    charactersToPercentEncodeExtra;
+
+/**
+ * Returns the Punycode ASCII serialization of the domain.
+ * If domain is an invalid domain, the empty string is returned.
+ * 
+ * @note Fallback to `punycode` as url.domainToASCII is supported in
+ * Node version >= 6.13.0.
+ *
+ * @param {String} domain domain name
+ * @returns {String} punycode encoded domain name
+ */
+domainToASCII = typeof url.domainToASCII === 'function' ?
+    url.domainToASCII : require('punycode').toASCII;
 
 /**
  * Parses a query string into an array, preserving parameter values
- * Note: This function is temporary. It will be removed once we implement our own encoding
- *       instead of url.parse().
+ * @todo: This function is only used in legacyEncoder. Remove it when we remove
+ *        the legacyEncoder
  *
- * @param string
- * @returns {*}
+ * @param string query string to parse (ex. k1=v1&k2=v2)
+ * @returns {Object[]} array of parsed query objects (ex. [{key: 'k1', value: 'v1'},{key: 'k2', value: 'v2'}])
  */
 parseQueryString = function (string) {
     var parts;
@@ -219,11 +263,11 @@ parseQueryString = function (string) {
 
 /**
  * Stringifies a query string, from an array of parameters
- * Note: This function is temporary. It will be removed once we implement our own encoding
- *       instead of url.parse().
+ * @todo: This function is only used in legacyEncoder. Remove it when we remove
+ *        the legacyEncoder
  *
- * @param parameters
- * @returns {string}
+ * @param {Object[]} parameters array of query param objects (ex. [{key: 'k1', value: 'v1'}])
+ * @returns {string} stringified query params (ex. k1=v1&k2=v2)
  */
 stringifyQueryParams = function (parameters) {
     return parameters ? parameters.map(function (param) {
@@ -239,128 +283,97 @@ stringifyQueryParams = function (parameters) {
             }
 
             if (value === null) {
-                return encoder.encode(key);
+                return legacyEncoder.encode(key);
             }
 
-            return encoder.encode(key) + EQUALS + encoder.encode(value);
+            return legacyEncoder.encode(key) + EQUALS + legacyEncoder.encode(value);
         }).join(AMPERSAND) : E;
 };
 
-encoder = {
+/**
+ * Percent encode a character with given code.
+ *
+ * @param {Number} c character code of the character to encode
+ * @returns {String} percent encoding of given character
+ */
+percentEncode = function(c) {
+    var hex = c.toString(16).toUpperCase();
+    (hex.length === 1) && (hex = ZERO + hex);
+    return PERCENT + hex;
+};
 
-    /**
-     * Percent encode a character with given code.
-     *
-     * @param {Number} c - character code of the character to encode
-     * @returns {String} - percent encoding of given character
-     */
-    percentEncode: function(c) {
-        var hex = c.toString(16).toUpperCase();
-        (hex.length === 1) && (hex = ZERO + hex);
-        return PERCENT + hex;
-    },
-
-    /**
-     * Checks if character at given index in the buffer is already percent encoded or not.
-     *
-     * @param {Buffer} buffer
-     * @param {Number} i
-     * @returns {Boolean}
-     */
-    isPreEncoded: function(buffer, i) {
-        // If it is % check next two bytes for percent encode characters
-        // looking for pattern %00 - %FF
-        return (buffer[i] === 0x25 &&
-            (encoder.isPreEncodedCharacter(buffer[i + 1]) &&
-            encoder.isPreEncodedCharacter(buffer[i + 2]))
-          );
-    },
-
-    /**
-     * Checks if character with given code is valid hexadecimal digit or not.
-     *
-     * @param {Number} byte
-     * @returns {Boolean}
-     */
-    isPreEncodedCharacter: function(byte) {
-        return (byte >= 0x30 && byte <= 0x39) ||  // 0-9
-           (byte >= 0x41 && byte <= 0x46) ||  // A-F
-           (byte >= 0x61 && byte <= 0x66);     // a-f
-    },
-
-    /**
-     * Checks whether given character should be percent encoded or not for fixture.
-     *
-     * @param {Number} byte
-     * @returns {Boolean}
-     */
-    charactersToPercentEncodeExtra: function(byte) {
-        return (byte < 0x23 || byte > 0x7E || // Below # and after ~
-            byte === 0x3C || byte === 0x3E || // > and <
-            byte === 0x28 || byte === 0x29 || // ( and )
-            byte === 0x25 || // %
-            byte === 0x27 || // '
-            byte === 0x2A    // *
+/**
+ * Checks if character at given index in the buffer is already percent encoded or not.
+ *
+ * @param {Buffer} buffer buffer to check the character from
+ * @param {Number} i index of the character to check
+ * @returns {Boolean} true if the character is encoded, false otherwise
+ */
+isPreEncoded = function(buffer, i) {
+    // If it is % check next two bytes for percent encode characters
+    // looking for pattern %00 - %FF
+    return (buffer[i] === 0x25 &&
+        (isPreEncodedCharacter(buffer[i + 1]) &&
+        isPreEncodedCharacter(buffer[i + 2]))
         );
-    },
+};
 
-    /**
-     * Checks whether given character should be percent encoded or not according to RFC 3986.
-     *
-     * @param {Number} byte
-     * @param {Number[]} [escapeTable=[]]
-     * @returns {Boolean}
-     */
-    charactersToPercentEncode: function(byte, escapeTable) {
-        !escapeTable && (escapeTable = []);
+/**
+ * Checks if character with given code is valid hexadecimal digit or not.
+ *
+ * @param {Number} byte character code
+ * @returns {Boolean} true if given character is a hexadecimal digit
+ */
+isPreEncodedCharacter = function(byte) {
+    return (byte >= 0x30 && byte <= 0x39) ||  // 0-9
+        (byte >= 0x41 && byte <= 0x46) ||     // A-F
+        (byte >= 0x61 && byte <= 0x66);       // a-f
+};
 
-        // Look in escape table if given character is in range of ASCII
-        if (byte < 0x80 && byte <= escapeTable.length) { return Boolean(escapeTable[byte]); }
+/**
+ * Checks whether given character should be percent encoded or not for fixture.
+ *
+ * @param {Number} byte character to check
+ * @returns {Boolean} true if the character should be encoded
+ */
+charactersToPercentEncodeExtra = function(byte) {
+    return (byte < 0x23 || byte > 0x7E || // Below # and after ~
+        byte === 0x3C || byte === 0x3E || // > and <
+        byte === 0x28 || byte === 0x29 || // ( and )
+        byte === 0x25 || // %
+        byte === 0x27 || // '
+        byte === 0x2A    // *
+    );
+};
 
-        // don't encode if character is in range of ASCII but not in range of given escapeTable
-        if (byte < 0x80) { return false; }
+/**
+ * Checks whether given character should be percent encoded or not according to the given escape table.
+ *
+ * @param {Number} byte character to check
+ * @param {Number[]} [escapeTable=[]] escape table to use for encoding
+ * @returns {Boolean} true if the character should be encoded
+ */
+charactersToPercentEncode = function(byte, escapeTable) {
+    !escapeTable && (escapeTable = []);
 
-        // Always encode non ASCII characters
-        return true;
-    },
+    // Look in escape table if given character is in range of ASCII
+    if (byte < 0x80 && byte <= escapeTable.length) { return Boolean(escapeTable[byte]); }
 
-    /**
-     * Percent encode a given string according to RFC 3986.
-     *
-     * @param {String} value
-     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
-     * @returns {String}
-     */
-    encodeString: function (value, escapeTable) {
-        if (!(value && typeof value === 'string')) { return E; }
+    // don't encode if character is in range of ASCII but not in range of given escapeTable
+    if (byte < 0x80) { return false; }
 
-        !escapeTable && (escapeTable = defaultQueryEscapeTable);
+    // Always encode non ASCII characters
+    return true;
+};
 
-        var buffer = Buffer.from(value),
-            ret = E,
-            i,
-            ii;
-
-        for (i = 0, ii = buffer.length; i < ii; ++i) {
-
-            if (encoder.charactersToPercentEncode(buffer[i], escapeTable) && !encoder.isPreEncoded(buffer, i)) {
-                ret += encoder.percentEncode(buffer[i]);
-            }
-            else {
-                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
-            }
-        }
-
-        return ret;
-    },
-
+legacyEncoder = {
     /**
      * Percent encode a query string according to RFC 3986.
      * Note: This function is supposed to be used on top of node's inbuilt url encoding
      *       to solve issue https://github.com/nodejs/node/issues/8321
-     *
-     * @param {String} value
-     * @returns {String}
+     *  
+     * @param {String} value string to percent-encode
+     * @returns {String} percent-encoded string
      */
     encode: function (value) {
         if (!(value && typeof value === 'string')) { return E; }
@@ -372,11 +385,11 @@ encoder = {
 
         for (i = 0, ii = buffer.length; i < ii; ++i) {
 
-            if (encoder.charactersToPercentEncodeExtra(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
-                ret += encoder.percentEncode(buffer[i]);
+            if (charactersToPercentEncodeExtra(buffer[i]) && !isPreEncoded(buffer, i)) {
+                ret += percentEncode(buffer[i]);
             }
             else {
-                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
+                ret += String.fromCodePoint(buffer[i]);
             }
         }
 
@@ -386,8 +399,8 @@ encoder = {
     /**
      * Converts URL string into Node's Url object with encoded values
      *
-     * @param {String} url
-     * @returns {Url}
+     * @param {String} url string representing a url
+     * @returns {Url} Node's Url object
      */
     toNodeUrl: function (urlString) {
         var parsed = url.parse(urlString),
@@ -411,25 +424,49 @@ encoder = {
 
         // Parse again, because Node does not guarantee consistency of properties
         return url.parse(str);
+    }
+};
+
+encoder = {
+    /**
+     * Percent encode a given string according to given escape table.
+     *
+     * @param {String} value string to percent-encode
+     * @param {Number[]} [escapeTable=QUERY_ESCAPE_TABLE] escape table to use for encoding
+     * @returns {String} percent-encoded string
+     */
+    encode: function (value, escapeTable) {
+        if (!(value && typeof value === 'string')) { return E; }
+
+        !escapeTable && (escapeTable = QUERY_ESCAPE_TABLE);
+
+        var buffer = Buffer.from(value),
+            ret = E,
+            i,
+            ii;
+
+        for (i = 0, ii = buffer.length; i < ii; ++i) {
+            if (charactersToPercentEncode(buffer[i], escapeTable) && !isPreEncoded(buffer, i)) {
+                ret += percentEncode(buffer[i]);
+            }
+            else {
+                ret += String.fromCodePoint(buffer[i]);
+            }
+        }
+
+        return ret;
     },
-
-
-
-
-
 
     /**
      * Does percent-encodeing of username/password for basic auth
      *
      * @param {String} authParam auth parameter to encode
-     * @returns {String} encoded auth parameter
+     * @returns {String} percent-encoded auth parameter
      */
-    encodeAuth: function (authParam, escapeTable) {
-        !escapeTable && (escapeTable = defaultAuthEscapeTable);
-
+    encodeAuth: function (authParam) {
         if (typeof authParam !== STRING) { return E; }
 
-        return encoder.encodeString(authParam, escapeTable);
+        return encoder.encode(authParam, AUTH_ESCAPE_TABLE);
     },
 
     /**
@@ -445,19 +482,16 @@ encoder = {
             hostName = hostName.join(DOMAIN_SEPARATOR);
         }
 
-        return punycode.toASCII(hostName);
+        return domainToASCII(hostName) || hostName;
     },
 
     /**
      * Encodes url path or individual path segments
      *
-     * @param {String|String[]} path Unencoded path (ex. '/foo/bar' or ['foo', 'bar'])
-     * @param {Number[]} [escapeTable=defaultPathEscapeTable]
+     * @param {String|String[]} path unencoded path (ex. '/foo/bar' or ['foo', 'bar'])
      * @returns {String} percent-encoded path
      */
-    encodePath: function (path, escapeTable) {
-        !escapeTable && (escapeTable = defaultPathEscapeTable);
-
+    encodePath: function (path) {
         if (typeof path === STRING) {
             path = path.split(PATH_SEPARATOR);
         }
@@ -467,8 +501,9 @@ encoder = {
         }
 
         // encode individual segments of path
+        // @todo
         path = path.map(function (segment) {
-            return encoder.encodeString(segment, escapeTable);
+            return encoder.encode(segment, PATH_ESCAPE_TABLE);
         });
 
         return path.join(PATH_SEPARATOR);
@@ -478,13 +513,10 @@ encoder = {
      * Encodes single query parameter and returns as a string
      *
      * @param {Object} param query param to encode (ex. {key:'foo', value:'bar'})
-     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
-     * @returns {String} encoded query param (ex. 'foo=bar')
+     * @returns {String} percent-encoded query param (ex. 'foo=bar')
      */
-    encodeQueryParam: function (param, escapeTable) {
+    encodeQueryParam: function (param) {
         if (!param) { return E; }
-
-        !escapeTable && (escapeTable = defaultQueryEscapeTable);
 
         var key = param.key,
             value = param.value;
@@ -501,8 +533,8 @@ encoder = {
             return E;
         }
 
-        key = encoder.encodeString(key, escapeTable);
-        value = encoder.encodeString(value, escapeTable);
+        key = encoder.encode(key, QUERY_ESCAPE_TABLE);
+        value = encoder.encode(value, QUERY_ESCAPE_TABLE);
 
         return key + EQUALS + value;
     },
@@ -512,12 +544,9 @@ encoder = {
      *
      * @param {Object|Object[]} params query params to encode (ex. [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}])
      * @param {Boolean} [ignoreDisabled=false] ignore disabled params if true
-     * @param {Number[]} [escapeTable=defaultQueryEscapeTable]
-     * @returns {String}
+     * @returns {String} percent-encoded query string
      */
-    encodeQueryParams: function (params, ignoreDisabled, escapeTable) {
-        !escapeTable && (escapeTable = defaultQueryEscapeTable);
-
+    encodeQueryParams: function (params, ignoreDisabled) {
         var result = E;
 
         if (!Array.isArray(params)) {
@@ -528,13 +557,13 @@ encoder = {
 
                 if (Array.isArray(params[key])) {
                     params[key].forEach(function (value) {
-                        encoded = encoder.encodeQueryParam({ key: key, value: value }, escapeTable);
+                        encoded = encoder.encodeQueryParam({ key: key, value: value }, QUERY_ESCAPE_TABLE);
                         result && encoded && (result += AMPERSAND);
                         result += encoded;
                     });
                 }
                 else {
-                    encoded = encoder.encodeQueryParam({ key: key, value: params[key] }, escapeTable);
+                    encoded = encoder.encodeQueryParam({ key: key, value: params[key] }, QUERY_ESCAPE_TABLE);
                     result && encoded && (result += AMPERSAND);
                     result += encoded;
                 }
@@ -546,7 +575,7 @@ encoder = {
         params.forEach(function (param) {
             if (ignoreDisabled && param.disabled === true) { return; }
 
-            var encoded = encoder.encodeQueryParam(param, escapeTable);
+            var encoded = encoder.encodeQueryParam(param, QUERY_ESCAPE_TABLE);
 
             result && encoded && (result += AMPERSAND);
             result += encoded;
@@ -559,14 +588,12 @@ encoder = {
      * Does percent-encodeing of url hash
      *
      * @param {String} hash hash to encode
-     * @returns {String} encoded hash
+     * @returns {String} percent-encoded hash
      */
-    encodeHash: function (hash, escapeTable) {
-        !escapeTable && (escapeTable = defaultHashEscapeTable);
-
+    encodeHash: function (hash) {
         if (typeof hash !== STRING) { return E; }
 
-        return encoder.encodeString(hash, escapeTable);
+        return encoder.encode(hash, HASH_ESCAPE_TABLE);
     },
 
     /**
@@ -575,9 +602,10 @@ encoder = {
      * @param {PostmanUrl|String} url Url to create Node URL object from
      * @returns {Url} Node's Url object
      */
-    toNodeUrlWHATWG: function (url) {
+    toNodeUrl: function (url) {
         var nodeUrl = {
             protocol: null,
+            slashes: null,
             auth: null,
             host: null,
             port: null,
@@ -585,8 +613,8 @@ encoder = {
             hash: null,
             search: null,
             query: null,
-            pathname: PATH_SEPARATOR,
-            path: PATH_SEPARATOR,
+            pathname: null,
+            path: null,
             href: null
         };
 
@@ -594,56 +622,77 @@ encoder = {
             url = new sdk.Url(url);
         }
 
-        if (!(url && typeof url === OBJECT)) {
+        if (!sdk.Url.isUrl(url)) {
             return nodeUrl;
         }
 
-        if (url.protocol) {
-            // remove '://' from end of protocol if it is there
-            nodeUrl.protocol = url.protocol.replace(/:\/\/$/, E).toLowerCase();
-            nodeUrl.href = nodeUrl.protocol + PROTOCOL_SEPARATOR;
-            nodeUrl.protocol = nodeUrl.protocol + COLON;
-        }
+        // protocol
+        nodeUrl.protocol = (typeof url.protocol === STRING) ?
+            url.protocol.replace('://', E).toLowerCase() : DEFAULT_PROTOCOL;
+        nodeUrl.protocol += COLON;
 
+        // slashes
+        nodeUrl.slashes = SLASHED_PROTOCOLS.has(nodeUrl.protocol);
+
+        // protocol://
+        nodeUrl.href = nodeUrl.protocol + PROTOCOL_SEPARATOR;
+
+        // auth
         if (url.auth) {
-            nodeUrl.auth = encoder.encodeAuth(url.auth.user || E, defaultAuthEscapeTable);
-            url.auth.password &&
-                (nodeUrl.auth += COLON + encoder.encodeAuth(url.auth.password, defaultAuthEscapeTable));
-            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
+            if (typeof url.auth.user === STRING) {
+                nodeUrl.auth = encoder.encodeAuth(url.auth.user);    
+            }
+            if (typeof url.auth.password === STRING) {
+                !nodeUrl.auth && (nodeUrl.auth = E);
+                nodeUrl.auth += COLON + encoder.encodeAuth(url.auth.password)
+            }
+            
+            // protocol://user:password@
+            nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
         }
 
-        if (url.host) {
-            nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
-            nodeUrl.host = nodeUrl.hostname;
-            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.hostname;
-        }
+        // host
+        nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
+            
+        // protocol://user:password@hostname
+        nodeUrl.href += nodeUrl.hostname;
 
+        // port
         if (url.port) {
             nodeUrl.port = url.port.toString();
             nodeUrl.host = (nodeUrl.hostname || E) + COLON + nodeUrl.port;
-            nodeUrl.href = (nodeUrl.href || E) + COLON + nodeUrl.port;
+
+            // protocol://user:password@hostname:port
+            nodeUrl.href += COLON + nodeUrl.port;
         }
 
-        if (url.path) {
-            nodeUrl.pathname = encoder.encodePath(url.getPath(), defaultPathEscapeTable);
-            nodeUrl.path = nodeUrl.pathname;
-            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.pathname;
-        }
+        // path
+        nodeUrl.path = nodeUrl.pathname = encoder.encodePath(url.getPath());
 
-        if (url.query && url.query.count()) {
-            nodeUrl.query = encoder.encodeQueryParams(url.query.all(), true, defaultQueryEscapeTable);
+        // protocol://user:password@hostname:port/p/a/t/h
+        nodeUrl.href += nodeUrl.pathname;
+
+        // query
+        if (url.query.count()) {
+            nodeUrl.query = encoder.encodeQueryParams(url.query.all(), true);
             nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
-            nodeUrl.path = (nodeUrl.pathname || E) + nodeUrl.search;
+            nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
+
+            // protocol://user:password@hostname:port/p/a/t/h?q=query
             nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
         }
 
+        // hash
         if (url.hash) {
-            nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeHash(url.hash, defaultHashEscapeTable);
-            nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
+            nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeHash(url.hash);
+            
+            // protocol://user:password@hostname:port/p/a/t/h?q=query#hash
+            nodeUrl.href += nodeUrl.hash;
         }
 
         return nodeUrl;
     }
 };
 
+encoder.legacyEncoder = legacyEncoder;
 module.exports = encoder;
