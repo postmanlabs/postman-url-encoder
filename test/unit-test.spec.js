@@ -1,5 +1,5 @@
-var expect = require('expect.js'),
-    urlEncoder = require('./index.js').legacyEncoder,
+var expect = require('chai').expect,
+    urlEncoder = require('../index.js').legacyEncoder,
     sdk = require('postman-collection');
 
 describe('Url Encoding fix of node\'s bug', function () {
