@@ -4,7 +4,7 @@
   "description": " It encodes the given url string as per RFC 3986.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha unit-test.spec.js"
+    "test": "mocha test/unit-test.spec.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "punycode": "^2.1.1"
   },
   "devDependencies": {
-    "expect.js": "^0.3.1",
+    "chai": "^4.2.0",
     "mocha": "^3.0.0"
   }
 }
