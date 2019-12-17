@@ -280,6 +280,50 @@ module.exports = [
         }
     },
     {
+        title: 'query param without value',
+        in: {
+            host: 'postman.com',
+            path: '/',
+            query: [{key: 'q1', value: null}]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=',
+            search: '?q1=',
+            path: '/?q1=',
+            hash: null,
+            href: 'http://postman.com/?q1='
+        }
+    },
+    {
+        title: 'query param without key',
+        in: {
+            host: 'postman.com',
+            path: '/',
+            query: [{key: null, value: 'v1'}]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: '=v1',
+            search: '?=v1',
+            path: '/?=v1',
+            hash: null,
+            href: 'http://postman.com/?=v1'
+        }
+    },
+    {
         title: 'only host',
         in: {
             host: 'postman.com'
@@ -486,4 +530,256 @@ module.exports = [
             href: 'http://xn--nstq34i.com/'
         }
     },
+    {
+        title: 'special characters in path',
+        in: {
+            host: 'postman.com',
+            path: '/ /"/#/</>/?/`/{/}'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/%20/%22/%23/%3C/%3E/%3F/%60/%7B/%7D',
+            query: null,
+            search: null,
+            path: '/%20/%22/%23/%3C/%3E/%3F/%60/%7B/%7D',
+            hash: null,
+            href: 'http://postman.com/%20/%22/%23/%3C/%3E/%3F/%60/%7B/%7D'
+        }
+    },
+    {
+        title: 'unicode characters in path',
+        in: {
+            host: 'postman.com',
+            path: '/𝌆/й/你/ス'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/%F0%9D%8C%86/%D0%B9/%E4%BD%A0/%E3%82%B9',
+            query: null,
+            search: null,
+            path: '/%F0%9D%8C%86/%D0%B9/%E4%BD%A0/%E3%82%B9',
+            hash: null,
+            href: 'http://postman.com/%F0%9D%8C%86/%D0%B9/%E4%BD%A0/%E3%82%B9'
+        }
+    },
+    {
+        title: 'already encoded characters in path',
+        in: {
+            host: 'postman.com',
+            path: '/%25'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/%25',
+            query: null,
+            search: null,
+            path: '/%25',
+            hash: null,
+            href: 'http://postman.com/%25'
+        }
+    },
+    {
+        title: 'special characters in query param key',
+        in: {
+            host: 'postman.com',
+            query: [{ key: ' "#\'<>', value: 'v1' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: '%20%22%23%27%3C%3E=v1',
+            search: '?%20%22%23%27%3C%3E=v1',
+            path: '/?%20%22%23%27%3C%3E=v1',
+            hash: null,
+            href: 'http://postman.com/?%20%22%23%27%3C%3E=v1'
+        }
+    },
+    {
+        title: 'special characters in query param value',
+        in: {
+            host: 'postman.com',
+            query: [{ key: 'q1', value: ' "#\'<>' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=%20%22%23%27%3C%3E',
+            search: '?q1=%20%22%23%27%3C%3E',
+            path: '/?q1=%20%22%23%27%3C%3E',
+            hash: null,
+            href: 'http://postman.com/?q1=%20%22%23%27%3C%3E'
+        }
+    },
+    {
+        title: 'unicode characters in query param key',
+        in: {
+            host: 'postman.com',
+            query: [{ key: '𝌆й你ス', value: 'v1' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: '%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=v1',
+            search: '?%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=v1',
+            path: '/?%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=v1',
+            hash: null,
+            href: 'http://postman.com/?%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=v1'
+        }
+    },
+    {
+        title: 'unicode characters in query param value',
+        in: {
+            host: 'postman.com',
+            query: [{ key: 'q1', value: '𝌆й你ス' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9',
+            search: '?q1=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9',
+            path: '/?q1=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9',
+            hash: null,
+            href: 'http://postman.com/?q1=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9'
+        }
+    },
+    {
+        title: 'already encoded characters in query param key',
+        in: {
+            host: 'postman.com',
+            query: [{ key: '%25', value: 'v1' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: '%25=v1',
+            search: '?%25=v1',
+            path: '/?%25=v1',
+            hash: null,
+            href: 'http://postman.com/?%25=v1'
+        }
+    },
+    {
+        title: 'already encoded characters in query param value',
+        in: {
+            host: 'postman.com',
+            query: [{ key: 'q1', value: '%25' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=%25',
+            search: '?q1=%25',
+            path: '/?q1=%25',
+            hash: null,
+            href: 'http://postman.com/?q1=%25'
+        }
+    },
+    {
+        title: 'special characters in hash',
+        in: {
+            host: 'postman.com',
+            hash: ' "<>`'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: '#%20%22%3C%3E%60',
+            href: 'http://postman.com/#%20%22%3C%3E%60'
+        }
+    },
+    {
+        title: 'unicode characters in hash',
+        in: {
+            host: 'postman.com',
+            hash: '𝌆й你ス'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: '#%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9',
+            href: 'http://postman.com/#%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9'
+        }
+    },
+    {
+        title: 'already encoded characters in hash',
+        in: {
+            host: 'postman.com',
+            hash: '%25'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: '#%25',
+            href: 'http://postman.com/#%25'
+        }
+    }
 ]
