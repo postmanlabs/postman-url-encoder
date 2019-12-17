@@ -215,8 +215,7 @@ describe('encoder', function () {
 
             list.forEach(function (url) {
                 it(url.title, function () {
-                    var postmanUrl = new sdk.Url(url.in),
-                        nodeUrl = urlEncoder.toNodeUrl(postmanUrl);
+                    var nodeUrl = urlEncoder.toNodeUrl(url.in);
 
                     expect(nodeUrl).to.eql(url.out);
                 });

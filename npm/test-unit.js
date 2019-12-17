@@ -55,9 +55,9 @@ module.exports = function (exit) {
             nyc.writeCoverageFile();
             nyc.report();
             nyc.checkCoverage({
-                statements: 95,
-                branches: 90,
-                functions: 95,
+                statements: 90,
+                branches: 85,
+                functions: 100,
                 lines: 95
             });
 
