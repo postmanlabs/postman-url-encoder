@@ -8,7 +8,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -34,7 +34,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}]
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }]
         },
         out: {
             protocol: 'http:',
@@ -83,7 +83,7 @@ module.exports = [
             auth: { user: 'usr', password: 'pswd' },
             host: 'postman.com',
             port: '8080',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -108,7 +108,7 @@ module.exports = [
             auth: { user: 'usr', password: 'pswd' },
             host: 'postman.com',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -133,7 +133,7 @@ module.exports = [
             auth: { user: 'usr', password: 'pswd' },
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -159,7 +159,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -185,7 +185,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -211,7 +211,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -236,7 +236,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -261,7 +261,7 @@ module.exports = [
             host: 'postman.com',
             port: '8080',
             path: '/p/a/t/h',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}],
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }],
             hash: '1234'
         },
         out: {
@@ -284,7 +284,7 @@ module.exports = [
         in: {
             host: 'postman.com',
             path: '/',
-            query: [{key: 'q1', value: null}]
+            query: [{ key: 'q1', value: null }]
         },
         out: {
             protocol: 'http:',
@@ -306,7 +306,7 @@ module.exports = [
         in: {
             host: 'postman.com',
             path: '/',
-            query: [{key: null, value: 'v1'}]
+            query: [{ key: null, value: 'v1' }]
         },
         out: {
             protocol: 'http:',
@@ -389,7 +389,7 @@ module.exports = [
         title: 'only host and query',
         in: {
             host: 'postman.com',
-            query: [{key: 'q1', value: 'v1'}, {key: 'q2', value: 'v2'}]
+            query: [{ key: 'q1', value: 'v1' }, { key: 'q2', value: 'v2' }]
         },
         out: {
             protocol: 'http:',
@@ -782,4 +782,4 @@ module.exports = [
             href: 'http://postman.com/#%25'
         }
     }
-]
+];

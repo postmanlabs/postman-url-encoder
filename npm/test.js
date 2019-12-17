@@ -4,7 +4,7 @@ require('colors');
 
 require('async').series([
     require('./test-lint'),
-    require('./test-unit'),
+    require('./test-unit')
 ], function (code) {
     !code && console.info('\npostman-url-encoder tests: all ok!'.green);
     exit(code);

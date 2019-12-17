@@ -118,7 +118,7 @@ var url = require('url'),
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, // 80 - 95
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, // 112 - 127
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1 // 112 - 127
     ],
 
     /**
@@ -140,7 +140,7 @@ var url = require('url'),
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80 - 95
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, // 112 - 127
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1 // 112 - 127
     ],
 
     /**
@@ -162,7 +162,7 @@ var url = require('url'),
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80 - 95
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 112 - 127
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 // 112 - 127
     ],
 
     /**
@@ -184,7 +184,7 @@ var url = require('url'),
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80 - 95
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 112 - 127
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 // 112 - 127
     ],
 
     /**
@@ -219,7 +219,7 @@ var url = require('url'),
 /**
  * Returns the Punycode ASCII serialization of the domain.
  * If domain is an invalid domain, the empty string is returned.
- * 
+ *
  * @note Fallback to `punycode` as url.domainToASCII is supported in
  * Node version >= 6.13.0.
  *
@@ -231,10 +231,11 @@ domainToASCII = typeof url.domainToASCII === 'function' ?
 
 /**
  * Parses a query string into an array, preserving parameter values
+ *
  * @todo: This function is only used in legacyEncoder. Remove it when we remove
  *        the legacyEncoder
  *
- * @param string query string to parse (ex. k1=v1&k2=v2)
+ * @param {String} string query string to parse (ex. k1=v1&k2=v2)
  * @returns {Object[]} array of parsed query objects (ex. [{key: 'k1', value: 'v1'},{key: 'k2', value: 'v2'}])
  */
 parseQueryString = function (string) {
@@ -251,12 +252,13 @@ parseQueryString = function (string) {
             var index = (typeof param === STRING) ? param.indexOf(EQUALS) : -1,
                 paramObj = {};
 
-            // this means that there was no value for this key (not even blank, so we store this info) and the value is set
-            // to null
+            // this means that there was no value for this key (not even blank, so we store this info)
+            // and the value is set to null
             if (index < 0) {
                 paramObj.key = param.substr(0, param.length);
                 paramObj.value = null;
-            } else {
+            }
+            else {
                 paramObj.key = param.substr(0, index);
                 paramObj.value = param.substr(index + 1);
             }
@@ -270,6 +272,7 @@ parseQueryString = function (string) {
 
 /**
  * Stringifies a query string, from an array of parameters
+ *
  * @todo: This function is only used in legacyEncoder. Remove it when we remove
  *        the legacyEncoder
  *
@@ -278,23 +281,23 @@ parseQueryString = function (string) {
  */
 stringifyQueryParams = function (parameters) {
     return parameters ? parameters.map(function (param) {
-            var key = param.key;
-            var value = param.value;
+        var key = param.key,
+            value = param.value;
 
-            if (value === undefined) {
-                return E;
-            }
+        if (value === undefined) {
+            return E;
+        }
 
-            if (key === null) {
-                key = E;
-            }
+        if (key === null) {
+            key = E;
+        }
 
-            if (value === null) {
-                return legacyEncoder.encode(key);
-            }
+        if (value === null) {
+            return legacyEncoder.encode(key);
+        }
 
-            return legacyEncoder.encode(key) + EQUALS + legacyEncoder.encode(value);
-        }).join(AMPERSAND) : E;
+        return legacyEncoder.encode(key) + EQUALS + legacyEncoder.encode(value);
+    }).join(AMPERSAND) : E;
 };
 
 /**
@@ -303,7 +306,7 @@ stringifyQueryParams = function (parameters) {
  * @param {Number} c character code of the character to encode
  * @returns {String} percent encoding of given character
  */
-percentEncode = function(c) {
+percentEncode = function (c) {
     var hex = c.toString(16).toUpperCase();
     (hex.length === 1) && (hex = ZERO + hex);
     return PERCENT + hex;
@@ -316,13 +319,13 @@ percentEncode = function(c) {
  * @param {Number} i index of the character to check
  * @returns {Boolean} true if the character is encoded, false otherwise
  */
-isPreEncoded = function(buffer, i) {
+isPreEncoded = function (buffer, i) {
     // If it is % check next two bytes for percent encode characters
     // looking for pattern %00 - %FF
     return (buffer[i] === 0x25 &&
         (isPreEncodedCharacter(buffer[i + 1]) &&
         isPreEncodedCharacter(buffer[i + 2]))
-        );
+    );
 };
 
 /**
@@ -331,10 +334,10 @@ isPreEncoded = function(buffer, i) {
  * @param {Number} byte character code
  * @returns {Boolean} true if given character is a hexadecimal digit
  */
-isPreEncodedCharacter = function(byte) {
-    return (byte >= 0x30 && byte <= 0x39) ||  // 0-9
-        (byte >= 0x41 && byte <= 0x46) ||     // A-F
-        (byte >= 0x61 && byte <= 0x66);       // a-f
+isPreEncodedCharacter = function (byte) {
+    return (byte >= 0x30 && byte <= 0x39) || // 0-9
+        (byte >= 0x41 && byte <= 0x46) || // A-F
+        (byte >= 0x61 && byte <= 0x66); // a-f
 };
 
 /**
@@ -343,13 +346,13 @@ isPreEncodedCharacter = function(byte) {
  * @param {Number} byte character to check
  * @returns {Boolean} true if the character should be encoded
  */
-charactersToPercentEncodeExtra = function(byte) {
+charactersToPercentEncodeExtra = function (byte) {
     return (byte < 0x23 || byte > 0x7E || // Below # and after ~
         byte === 0x3C || byte === 0x3E || // > and <
         byte === 0x28 || byte === 0x29 || // ( and )
         byte === 0x25 || // %
         byte === 0x27 || // '
-        byte === 0x2A    // *
+        byte === 0x2A // *
     );
 };
 
@@ -360,7 +363,7 @@ charactersToPercentEncodeExtra = function(byte) {
  * @param {Number[]} [escapeTable=[]] escape table to use for encoding
  * @returns {Boolean} true if the character should be encoded
  */
-charactersToPercentEncode = function(byte, escapeTable) {
+charactersToPercentEncode = function (byte, escapeTable) {
     !escapeTable && (escapeTable = []);
 
     // Look in escape table if given character is in range of ASCII
@@ -376,9 +379,10 @@ charactersToPercentEncode = function(byte, escapeTable) {
 legacyEncoder = {
     /**
      * Percent encode a query string according to RFC 3986.
-     * Note: This function is supposed to be used on top of node's inbuilt url encoding
+     *
+     * @note: This function is supposed to be used on top of node's inbuilt url encoding
      *       to solve issue https://github.com/nodejs/node/issues/8321
-     *  
+     *
      * @param {String} value string to percent-encode
      * @returns {String} percent-encoded string
      */
@@ -406,7 +410,7 @@ legacyEncoder = {
     /**
      * Converts URL string into Node's Url object with encoded values
      *
-     * @param {String} url string representing a url
+     * @param {String} urlString string representing a url
      * @returns {Url} Node's Url object
      */
     toNodeUrl: function (urlString) {
@@ -551,7 +555,7 @@ encoder = {
     /**
      * Encodes list of query parameters and returns encoded query string
      *
-     * @param {Object|Object[]} params query params to encode (ex. [{key:'foo1', value:'bar1'}, {key:'foo2', value:'bar2'}])
+     * @param {Object|Object[]} params query params to encode (ex. [{key:'foo1', value:'bar1'}, ...])
      * @param {Boolean} [ignoreDisabled=false] ignore disabled params if true
      * @returns {String} percent-encoded query string
      */
@@ -649,20 +653,20 @@ encoder = {
         // auth
         if (url.auth) {
             if (typeof url.auth.user === STRING) {
-                nodeUrl.auth = encoder.encodeAuth(url.auth.user);    
+                nodeUrl.auth = encoder.encodeAuth(url.auth.user);
             }
             if (typeof url.auth.password === STRING) {
                 !nodeUrl.auth && (nodeUrl.auth = E);
-                nodeUrl.auth += COLON + encoder.encodeAuth(url.auth.password)
+                nodeUrl.auth += COLON + encoder.encodeAuth(url.auth.password);
             }
-            
+
             // protocol://user:password@
             nodeUrl.auth && (nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR);
         }
 
         // host
         nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
-            
+
         // protocol://user:password@hostname
         nodeUrl.href += nodeUrl.hostname;
 
@@ -694,7 +698,7 @@ encoder = {
         // hash
         if (url.hash) {
             nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeHash(url.hash);
-            
+
             // protocol://user:password@hostname:port/p/a/t/h?q=query#hash
             nodeUrl.href += nodeUrl.hash;
         }

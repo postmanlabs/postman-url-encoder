@@ -1,5 +1,5 @@
 var expect = require('chai').expect,
-    urlEncoder = require('../index.js'),
+    urlEncoder = require('../../index.js'),
     sdk = require('postman-collection');
 
 describe('encoder', function () {
@@ -87,11 +87,13 @@ describe('encoder', function () {
         });
 
         it('should encode unicode characters in key', function () {
-            expect(urlEncoder.encodeQueryParam({ key: '𝌆й你ス', value: 'bar' })).to.eql('%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=bar');
+            expect(urlEncoder.encodeQueryParam({ key: '𝌆й你ス', value: 'bar' }))
+                .to.eql('%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9=bar');
         });
 
         it('should encode unicode characters in value', function () {
-            expect(urlEncoder.encodeQueryParam({ key: 'foo', value: '𝌆й你ス' })).to.eql('foo=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9');
+            expect(urlEncoder.encodeQueryParam({ key: 'foo', value: '𝌆й你ス' }))
+                .to.eql('foo=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9');
         });
 
         it('should not encode already encoded characters', function () {
@@ -99,7 +101,7 @@ describe('encoder', function () {
         });
     });
 
-    describe('encodeQueryParams()', function ()  {
+    describe('encodeQueryParams()', function () {
         it('should return empty string for invalid argument', function () {
             expect(urlEncoder.encodeQueryParams(null)).to.eql('');
             expect(urlEncoder.encodeQueryParams(undefined)).to.eql('');
@@ -196,26 +198,26 @@ describe('encoder', function () {
         });
 
         describe('from PostmanUrl', function () {
-            var list = require('./fixtures/postman-url-to-node-url');
-    
+            var list = require('../fixtures/postman-url-to-node-url');
+
             list.forEach(function (url) {
                 it(url.title, function () {
                     var postmanUrl = new sdk.Url(url.in),
                         nodeUrl = urlEncoder.toNodeUrl(postmanUrl);
-    
+
                     expect(nodeUrl).to.eql(url.out);
                 });
             });
         });
-    
+
         describe('from string URL', function () {
-            var list = require('./fixtures/string-url-to-node-url');
-    
+            var list = require('../fixtures/string-url-to-node-url');
+
             list.forEach(function (url) {
                 it(url.title, function () {
                     var postmanUrl = new sdk.Url(url.in),
                         nodeUrl = urlEncoder.toNodeUrl(postmanUrl);
-    
+
                     expect(nodeUrl).to.eql(url.out);
                 });
             });
