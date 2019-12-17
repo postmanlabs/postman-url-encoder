@@ -13,6 +13,13 @@ var url = require('url'),
      * @const
      * @type {String}
      */
+    DOMAIN_SEPARATOR = '.',
+
+    /**
+     * @private
+     * @const
+     * @type {String}
+     */
     QUERY_SEPARATOR = '?',
 
     /**
@@ -476,10 +483,12 @@ encoder = {
      * @returns {String} punycode-encoded hostname
      */
     encodeHost: function (hostName) {
-        if (!hostName) { return E; }
-
         if (Array.isArray(hostName)) {
             hostName = hostName.join(DOMAIN_SEPARATOR);
+        }
+
+        if (typeof hostName !== STRING) {
+            return E;
         }
 
         return domainToASCII(hostName) || hostName;
