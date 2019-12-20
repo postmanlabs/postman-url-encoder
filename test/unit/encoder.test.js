@@ -66,6 +66,10 @@ describe('encoder', function () {
             expect(urlEncoder.encodeQueryParam(undefined)).to.eql('');
         });
 
+        it('should accept string argument', function () {
+            expect(urlEncoder.encodeQueryParam('邮差')).to.eql('%E9%82%AE%E5%B7%AE');
+        });
+
         it('should properly handle param without key', function () {
             expect(urlEncoder.encodeQueryParam({ value: 'bar' })).to.eql('=bar');
         });

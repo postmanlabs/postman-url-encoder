@@ -528,11 +528,15 @@ encoder = {
     /**
      * Encodes single query parameter and returns as a string
      *
-     * @param {Object} param query param to encode (ex. {key:'foo', value:'bar'})
+     * @param {Object|String} param query param to encode (ex. {key:'foo', value:'bar'} or 'key' or 'value')
      * @returns {String} percent-encoded query param (ex. 'foo=bar')
      */
     encodeQueryParam: function (param) {
         if (!param) { return E; }
+
+        if (typeof param === STRING) {
+            return encoder.encode(param, QUERY_ESCAPE_TABLE);
+        }
 
         var key = param.key,
             value = param.value;
