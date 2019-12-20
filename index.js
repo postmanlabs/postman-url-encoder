@@ -1,5 +1,6 @@
 var url = require('url'),
     sdk = require('postman-collection'),
+    querystring = require('querystring'),
 
     /**
      * @private
@@ -100,6 +101,13 @@ var url = require('url'),
     STRING = 'string',
 
     /**
+     * @private
+     * @const
+     * @type {String}
+     */
+    OBJECT = 'object',
+
+    /**
      * These characters needs to be encoded when encoding auth in URL.
      * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L466
      *
@@ -146,9 +154,10 @@ var url = require('url'),
     /**
      * These characters needs to be encoded when encoding URL query.
      * Borrowed from: https://github.com/nodejs/node/blob/v10.17.0/src/node_url.cc#L601
+     * and added two extra characcters (& and =).
      *
      * [0-31, 127] - non printable ASCII
-     * space " # ' < >
+     * space " # & ' < = >
      *
      * @private
      * @const
@@ -157,8 +166,8 @@ var url = require('url'),
     QUERY_ESCAPE_TABLE = [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0 - 15
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 16 - 31
-        1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, // 48 - 63
+        1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 47
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, // 48 - 63
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 64 - 79
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80 - 95
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 96 - 111
@@ -505,21 +514,15 @@ encoder = {
      * @returns {String} percent-encoded path
      */
     encodePath: function (path) {
-        if (typeof path === STRING) {
-            path = path.split(PATH_SEPARATOR);
+        if (Array.isArray(path) && path.length) {
+            path = path.join(PATH_SEPARATOR);
         }
 
-        if (!(Array.isArray(path) && path.length)) {
+        if (typeof path !== STRING) {
             return E;
         }
 
-        // encode individual segments of path
-        // @todo
-        path = path.map(function (segment) {
-            return encoder.encode(segment, PATH_ESCAPE_TABLE);
-        });
-
-        return path.join(PATH_SEPARATOR);
+        return encoder.encode(path, PATH_ESCAPE_TABLE);
     },
 
     /**
@@ -560,14 +563,15 @@ encoder = {
      * @returns {String} percent-encoded query string
      */
     encodeQueryParams: function (params, ignoreDisabled) {
-        var result = E;
+        var i,
+            ii,
+            encoded,
+            result = E;
 
         if (!Array.isArray(params)) {
             if (!(params && typeof params === 'object')) { return E; }
 
             Object.keys(params).forEach(function (key) {
-                var encoded;
-
                 if (Array.isArray(params[key])) {
                     params[key].forEach(function (value) {
                         encoded = encoder.encodeQueryParam({ key: key, value: value }, QUERY_ESCAPE_TABLE);
@@ -585,16 +589,35 @@ encoder = {
             return result;
         }
 
-        params.forEach(function (param) {
-            if (ignoreDisabled && param.disabled === true) { return; }
+        for (i = 0, ii = params.length; i < ii; i++) {
+            if (ignoreDisabled && params[i].disabled === true) { continue; }
 
-            var encoded = encoder.encodeQueryParam(param, QUERY_ESCAPE_TABLE);
+            encoded = encoder.encodeQueryParam(params[i], QUERY_ESCAPE_TABLE);
 
             result && encoded && (result += AMPERSAND);
             result += encoded;
-        });
+        }
 
         return result;
+    },
+
+    /**
+     * Converts urlencoded body object to string according to RFC3986
+     *
+     * @param {Object} body object representing urlencoded body (ex. {foo: 'bar', alpha: ['beta', 'gama]})
+     * @returns {String} stringified urlencoded body
+     */
+    stringifyUrlencodedBody: function (body) {
+        if (!(body && typeof body === OBJECT)) {
+            return E;
+        }
+
+        body = querystring.stringify(body);
+
+        // encode characters not encoded by querystring.stringify() according to RFC3986.
+        return body.replace(/[!'()*]/g, function (c) {
+            return percentEncode(c.charCodeAt(0));
+        });
     },
 
     /**
