@@ -154,6 +154,33 @@ describe('encoder', function () {
         });
     });
 
+    describe('stringifyUrlencodedBody()', function () {
+        it('should return empty string for invalid argument', function () {
+            expect(urlEncoder.stringifyUrlencodedBody(null)).to.eql('');
+            expect(urlEncoder.stringifyUrlencodedBody(undefined)).to.eql('');
+            expect(urlEncoder.stringifyUrlencodedBody('foo')).to.eql('');
+        });
+
+        it('should properly stringify given body', function () {
+            var urlencodedBody = {
+                    foo: 'bar',
+                    alpha: ['beta', 'gama']
+                },
+                stringifiedBody = 'foo=bar&alpha=beta&alpha=gama';
+
+            expect(urlEncoder.stringifyUrlencodedBody(urlencodedBody)).to.eql(stringifiedBody);
+        });
+
+        it('should encode characters: `!\'()*`', function () {
+            var urlencodedBody = {
+                    extraChars: '!\'()*'
+                },
+                stringifiedBody = 'extraChars=%21%27%28%29%2A';
+
+            expect(urlEncoder.stringifyUrlencodedBody(urlencodedBody)).to.eql(stringifiedBody);
+        });
+    });
+
     describe('encodeHash()', function () {
         it('should return empty string for invalid argument', function () {
             expect(urlEncoder.encodeHash(null)).to.eql('');
