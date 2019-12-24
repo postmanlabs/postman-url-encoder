@@ -1,7 +1,7 @@
 {
   "name": "postman-url-encoder",
   "version": "1.0.3",
-  "description": " It encodes the given url string as per RFC 3986.",
+  "description": "Implementation of the WHATWG URL Standard",
   "main": "index.js",
   "scripts": {
     "test": "npm run test-lint && npm run test-unit",
@@ -32,9 +32,9 @@
     "chalk": "^2.4.2",
     "colors": "^1.4.0",
     "eslint": "^5.16.0",
-    "eslint-plugin-jsdoc": "^18.4.3",
+    "eslint-plugin-jsdoc": "^18.4.4",
     "eslint-plugin-security": "^1.4.0",
-    "mocha": "^3.0.0",
+    "mocha": "^6.2.2",
     "nyc": "^14.1.1",
     "recursive-readdir": "^2.2.2",
     "shelljs": "^0.8.3"
