@@ -1,0 +1,122 @@
+/** @module encoder/percent-encode */
+
+/**
+ * @fileoverview
+ * A percent-encoding mechanism is used to represent a data octet in a component
+ * when that octet's corresponding character is outside the allowed set or is
+ * being used as a delimiter of, or within, the component.
+ * A percent-encoded octet is encoded as a character triplet, consisting of the
+ * percent character "%" followed by the two hexadecimal digits representing
+ * that octet's numeric value.
+ *
+ * For example, "%20" is the percent-encoding for the binary octet "00100000"
+ * (ABNF: %x20), which in US-ASCII corresponds to the space character (SP).
+ *
+ * @see {@link https://tools.ietf.org/html/rfc3986#section-2.1}
+ */
+
+const encodeSet = require('./encode-set'),
+
+    EncodeSet = encodeSet.EncodeSet,
+    C0_CONTROL_ENCODE_SET = encodeSet.C0_CONTROL_ENCODE_SET,
+
+    E = '',
+    ZERO = '0',
+    PERCENT = '%',
+    STRING = 'string';
+
+/**
+ * Checks if character with given code is valid hexadecimal digit or not.
+ *
+ * @private
+ * @param {Number} byte
+ * @returns {Boolean}
+ */
+function isPreEncodedCharacter (byte) {
+    return (byte >= 0x30 && byte <= 0x39) || // 0-9
+        (byte >= 0x41 && byte <= 0x46) || // A-F
+        (byte >= 0x61 && byte <= 0x66); // a-f
+}
+
+/**
+ * Checks if character at given index in the buffer is already percent encoded or not.
+ *
+ * @private
+ * @param {Buffer} buffer Buffer to check the character from
+ * @param {Number} i Index of the character to check
+ * @returns {Boolean} true if the character is encoded, false otherwise
+ */
+function isPreEncoded (buffer, i) {
+    // if it is % check next two bytes for percent encode characters
+    // looking for pattern %00 - %FF
+    return buffer[i] === 0x25 && // %
+        isPreEncodedCharacter(buffer[i + 1]) &&
+        isPreEncodedCharacter(buffer[i + 2]);
+}
+
+/**
+ * Percent encode a character with given code.
+ *
+ * @example
+ * // returns '%20'
+ * encodeCharCode(32)
+ *
+ * @param {Number} code Character code
+ * @returns {String} Percent-encoded character
+ */
+function encodeCharCode (code) {
+    var hex = code.toString(16).toUpperCase();
+    (hex.length === 1) && (hex = ZERO + hex);
+
+    return PERCENT + hex;
+}
+
+/**
+ * Percent-encode the given string with the given {@link EncodeSet}.
+ *
+ * @example <caption>Defaults to C0_CONTROL_ENCODE_SET</caption>
+ * // returns 'foo %00 bar'
+ * encode('foo \u0000 bar')
+ *
+ * @example <caption>Encode literal @ using custom EncodeSet</caption>
+ * // returns 'foo%40bar'
+ * encode('foo@bar', new EncodeSet(['@']))
+ *
+ * @param {String} value String to percent-encode
+ * @param {EncodeSet} [encodeSet=C0_CONTROL_ENCODE_SET] EncodeSet to use for encoding
+ * @returns {String} Percent-encoded string
+ */
+function encode (value, encodeSet) {
+    if (!(value && typeof value === STRING)) {
+        return E;
+    }
+
+    // defaults to C0_CONTROL_ENCODE_SET
+    if (!EncodeSet.isEncodeSet(encodeSet)) {
+        encodeSet = C0_CONTROL_ENCODE_SET;
+    }
+
+    var buffer = Buffer.from(value),
+        encoded = E,
+        i,
+        ii;
+
+    for (i = 0, ii = buffer.length; i < ii; ++i) {
+        // encode if char code present in encodeSet
+        // also, avoid double encoding
+        if (encodeSet.has(buffer[i]) && !isPreEncoded(buffer, i)) {
+            encoded += encodeCharCode(buffer[i]);
+        }
+        // or, append string from char code
+        else {
+            encoded += String.fromCodePoint(buffer[i]);
+        }
+    }
+
+    return encoded;
+}
+
+module.exports = {
+    encode,
+    encodeCharCode
+};
