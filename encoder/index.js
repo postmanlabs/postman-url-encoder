@@ -220,8 +220,13 @@ function encodeQueryParam (param) {
  */
 function encodeQueryParams (params) {
     var i,
+        j,
         ii,
+        jj,
         encoded,
+        paramKey,
+        paramKeys,
+        paramValue,
         result = E;
 
     if (!(params && typeof params === OBJECT)) {
@@ -246,22 +251,27 @@ function encodeQueryParams (params) {
     }
 
     // handle object with query params
-    Object.keys(params).forEach(function (key) {
+    paramKeys = Object.keys(params);
+
+    for (i = 0, ii = paramKeys.length; i < ii; i++) {
+        paramKey = paramKeys[i];
+        paramValue = params[paramKey];
+
         // { key: ['value1', 'value2', 'value3'] }
-        if (Array.isArray(params[key])) {
-            params[key].forEach(function (value) {
-                encoded = encodeQueryParam({ key, value });
+        if (Array.isArray(paramValue)) {
+            for (j = 0, jj = paramValue.length; j < jj; j++) {
+                encoded = encodeQueryParam({ key: paramKey, value: paramValue[j] });
                 result && encoded && (result += AMPERSAND);
                 result += encoded;
-            });
+            }
         }
         // { key: 'value' }
         else {
-            encoded = encodeQueryParam({ key, value: params[key] });
+            encoded = encodeQueryParam({ key: paramKey, value: paramValue });
             result && encoded && (result += AMPERSAND);
             result += encoded;
         }
-    });
+    }
 
     return result;
 }
