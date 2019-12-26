@@ -24,15 +24,15 @@ const sdk = require('postman-collection'),
      * @private
      * @see {@link https://github.com/nodejs/node/blob/v10.17.0/lib/url.js#L91}
      */
-    SLASHED_PROTOCOLS = new Set([
-        'file:',
-        'ftp:',
-        'gopher:',
-        'http:',
-        'https:',
-        'ws:',
-        'wss:'
-    ]);
+    SLASHED_PROTOCOLS = {
+        'file:': true,
+        'ftp:': true,
+        'gopher:': true,
+        'http:': true,
+        'https:': true,
+        'ws:': true,
+        'wss:': true
+    };
 
 /**
  * Percent-encode the given string using QUERY_ENCODE_SET.
@@ -139,7 +139,7 @@ function toNodeUrl (url) {
     nodeUrl.protocol += COLON;
 
     // #slashes
-    nodeUrl.slashes = SLASHED_PROTOCOLS.has(nodeUrl.protocol);
+    nodeUrl.slashes = SLASHED_PROTOCOLS[nodeUrl.protocol] || false;
 
     // #href = protocol://
     nodeUrl.href = nodeUrl.protocol + DOUBLE_SLASH;
