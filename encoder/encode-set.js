@@ -30,6 +30,8 @@
  */
 
 const STRING = 'string',
+    FUNCTION = 'function',
+
     QUERY_ENCODE_CHARS = [' ', '"', '#', '&', '\'', '<', '=', '>'],
     FRAGMENT_EXTEND_CHARS = [' ', '"', '<', '>', '`'],
     PATH_EXTEND_CHARS = ['#', '?', '{', '}'],
@@ -65,8 +67,22 @@ function charCode (char) {
  * @returns {EncodeSet} Given EncodeSet
  */
 function extendEncodeSet (encodeSet, chars) {
+    // special handling for Uint8Array chars which signify an existing encode
+    // set used to extend the given encodeSet.
+    if (chars instanceof Uint8Array) {
+        // iterate over fixed / known size set
+        encodeSet._set.forEach(function (encoded, index) {
+            if (!encoded && chars[index]) {
+                // encode charCodeAt(index)
+                encodeSet._set[index] = 1;
+            }
+        });
+
+        return encodeSet;
+    }
+
     // check if the input characters are iterable or not
-    if (!(chars && typeof chars.forEach === 'function')) {
+    if (!(chars && typeof chars.forEach === FUNCTION)) {
         return encodeSet;
     }
 
@@ -85,11 +101,30 @@ function extendEncodeSet (encodeSet, chars) {
  */
 function EncodeSet (chars) {
     /**
-     * Stores char codes for characters to encode.
+     * Indexes in Uint8Array represents char codes for characters to encode.
      *
-     * @protected
+     * Size: 128, ASCII range [0, 0x7F]
+     *
+     * where,
+     * 1 -> encode
+     * 0 -> don't encode
+     *
+     * @private
+     * @type {Uint8Array}
      */
-    this._set = new Set();
+    this._set = new Uint8Array(0x80);
+
+    // encode C0 control codes [00, 0x1F] AND 0x7F
+    this._set.fill(1, 0, 0x20); // 0 to 31
+    this._set[0x7F] = 1; // 127
+
+    /**
+     * A Boolean indicating whether or not this EncodeSet is sealed.
+     *
+     * @private
+     * @type {Boolean}
+     */
+    this._sealed = false;
 
     // extend this set with input characters
     extendEncodeSet(this, chars);
@@ -110,7 +145,17 @@ function EncodeSet (chars) {
  * @returns {EncodeSet} Current EncodeSet
  */
 EncodeSet.prototype.add = function (char) {
-    this._set.add(charCode(char));
+    // bail out if the EncodeSet is sealed
+    if (this._sealed) {
+        return this;
+    }
+
+    const code = charCode(char);
+
+    // ensure ASCII range
+    if (code < 0x80) {
+        this._set[charCode(char)] = 1;
+    }
 
     // chaining
     return this;
@@ -120,7 +165,8 @@ EncodeSet.prototype.add = function (char) {
  * Returns a boolean asserting whether the given char code will be encoded in
  * the EncodeSet or not.
  *
- * @note Always encode control characters. [U+0000, U+001F] AND (U+007E, ∞)
+ * @note Always encode C0 control codes in the range U+0000 to U+001F and U+007F
+ * Refer: https://infra.spec.whatwg.org/#c0-control
  *
  * @example
  * const tildeEncodeSet = new EncodeSet(['~'])
@@ -139,18 +185,13 @@ EncodeSet.prototype.add = function (char) {
  * exists in the EncodeSet; otherwise false
  */
 EncodeSet.prototype.has = function (code) {
-    // encode control characters
-    if (code <= 0x1F || code > 0x7E) {
+    // encode if not in ASCII range (-∞, 0) OR (127, ∞)
+    if (code < 0 || code > 0x7F) {
         return true;
     }
 
     // encode if present in the set
-    if (this._set.has(code)) {
-        return true;
-    }
-
-    // don't encode
-    return false;
+    return Boolean(this._set[code]);
 };
 
 /**
@@ -164,6 +205,33 @@ EncodeSet.prototype.has = function (code) {
  */
 EncodeSet.prototype.clone = function () {
     return new EncodeSet(this._set);
+};
+
+/**
+ * Seals the current EncodeSet to prevent new characters being added to it.
+ *
+ * @example
+ * const set = new EncodeSet()
+ *
+ * set.add(95)
+ * set.has(95) // returns true
+ *
+ * set.seal()
+ * set.add(100)
+ * set.has(100) // returns false
+ *
+ * @returns {EncodeSet} Current EncodeSet
+ */
+EncodeSet.prototype.seal = function () {
+    this._sealed = true;
+
+    // @note Cannot freeze array buffer views with elements.
+    // So, rely upon the alternative `Object.seal` method and avoid mutations
+    // via EncodeSet~add method.
+    // Also, sealed Uint8Array enumerates faster in V8!
+    Object.seal(this._set);
+
+    return this;
 };
 
 /**
@@ -215,7 +283,7 @@ var
      * @type {EncodeSet}
      * @see {@link https://url.spec.whatwg.org/#c0-control-percent-encode-set}
      */
-    C0_CONTROL_ENCODE_SET = new EncodeSet(),
+    C0_CONTROL_ENCODE_SET = new EncodeSet().seal(),
 
     /**
      * The fragment percent-encode set is the C0 control percent-encode set and
@@ -225,7 +293,7 @@ var
      * @type {EncodeSet}
      * @see {@link https://url.spec.whatwg.org/#fragment-percent-encode-set}
      */
-    FRAGMENT_ENCODE_SET = EncodeSet.extend(C0_CONTROL_ENCODE_SET, FRAGMENT_EXTEND_CHARS),
+    FRAGMENT_ENCODE_SET = EncodeSet.extend(C0_CONTROL_ENCODE_SET, FRAGMENT_EXTEND_CHARS).seal(),
 
     /**
      * The path percent-encode set is the fragment percent-encode set and
@@ -235,7 +303,7 @@ var
      * @type {EncodeSet}
      * @see {@link https://url.spec.whatwg.org/#path-percent-encode-set}
      */
-    PATH_ENCODE_SET = EncodeSet.extend(FRAGMENT_ENCODE_SET, PATH_EXTEND_CHARS),
+    PATH_ENCODE_SET = EncodeSet.extend(FRAGMENT_ENCODE_SET, PATH_EXTEND_CHARS).seal(),
 
     /**
      * The userinfo percent-encode set is the path percent-encode set and
@@ -246,7 +314,7 @@ var
      * @type {EncodeSet}
      * @see {@link https://url.spec.whatwg.org/#userinfo-percent-encode-set}
      */
-    USERINFO_ENCODE_SET = EncodeSet.extend(PATH_ENCODE_SET, USERINFO_EXTEND_CHARS),
+    USERINFO_ENCODE_SET = EncodeSet.extend(PATH_ENCODE_SET, USERINFO_EXTEND_CHARS).seal(),
 
     /**
      * The query percent-encode set is the C0 control percent-encode set and
@@ -256,7 +324,7 @@ var
      * @const
      * @type {EncodeSet}
      */
-    QUERY_ENCODE_SET = new EncodeSet(QUERY_ENCODE_CHARS);
+    QUERY_ENCODE_SET = new EncodeSet(QUERY_ENCODE_CHARS).seal();
 
 module.exports = {
     // EncodeSet class
