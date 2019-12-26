@@ -225,11 +225,16 @@ EncodeSet.prototype.clone = function () {
 EncodeSet.prototype.seal = function () {
     this._sealed = true;
 
-    // @note Cannot freeze array buffer views with elements.
-    // So, rely upon the alternative `Object.seal` method and avoid mutations
-    // via EncodeSet~add method.
-    // Also, sealed Uint8Array enumerates faster in V8!
-    Object.seal(this._set);
+    try {
+        // @note Cannot freeze array buffer views with elements.
+        // So, rely upon the alternative `Object.seal` method and avoid mutations
+        // via EncodeSet~add method.
+        // Also, sealed Uint8Array enumerates faster in V8!
+        Object.seal(this._set);
+    }
+    catch (_) {
+        // silently swallow exceptions
+    }
 
     return this;
 };
