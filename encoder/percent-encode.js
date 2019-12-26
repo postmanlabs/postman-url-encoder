@@ -96,21 +96,26 @@ function encode (value, encodeSet) {
         encodeSet = C0_CONTROL_ENCODE_SET;
     }
 
-    var buffer = Buffer.from(value),
+    var i,
+        ii,
+        charCode,
         encoded = E,
-        i,
-        ii;
+        buffer = Buffer.from(value);
 
     for (i = 0, ii = buffer.length; i < ii; ++i) {
-        // encode if char code present in encodeSet
-        // also, avoid double encoding
-        if (encodeSet.has(buffer[i]) && !isPreEncoded(buffer, i)) {
-            encoded += encodeCharCode(buffer[i]);
+        // avoid double encoding
+        if (i < ii - 2 && isPreEncoded(buffer, i)) {
+            encoded += PERCENT + String.fromCharCode(buffer[++i], buffer[++i]);
+            continue;
         }
-        // or, append string from char code
-        else {
-            encoded += String.fromCodePoint(buffer[i]);
-        }
+
+        charCode = buffer[i];
+
+        encoded += encodeSet.has(charCode) ?
+            // encode if char code present in encodeSet
+            encodeCharCode(charCode) :
+            // or, append string from char code
+            String.fromCharCode(charCode);
     }
 
     return encoded;
