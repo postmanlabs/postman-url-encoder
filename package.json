@@ -1,27 +1,28 @@
 {
   "name": "postman-url-encoder",
-  "version": "1.0.3",
   "description": "Implementation of the WHATWG URL Standard",
+  "author": "Postman Labs <help@getpostman.com>",
+  "version": "1.0.3",
+  "license": "Apache-2.0",
+  "keywords": [
+    "postman",
+    "url-encoder",
+    "whatwg-url"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/postmanlabs/postman-url-encoder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/postmanlabs/postman-url-encoder/issues"
+  },
+  "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
   "main": "index.js",
   "scripts": {
     "test": "npm run test-lint && npm run test-unit",
     "test-lint": "node npm/test-lint.js",
     "test-unit": "node npm/test-unit.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/postmanlabs/postman-url-encoder.git"
-  },
-  "keywords": [
-    "postman",
-    "url-encoder"
-  ],
-  "author": "Postman Labs <help@getpostman.com> (=)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/postmanlabs/postman-url-encoder/issues"
-  },
-  "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
   "dependencies": {
     "postman-collection": "^3.5.5",
     "punycode": "^2.1.1"
