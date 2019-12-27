@@ -57,7 +57,7 @@ module.exports = function (exit) {
             nyc.checkCoverage({
                 statements: 90,
                 branches: 85,
-                functions: 100,
+                functions: 95,
                 lines: 95
             });
 
