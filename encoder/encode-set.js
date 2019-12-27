@@ -152,7 +152,7 @@ EncodeSet.prototype.add = function (char) {
 
     // ensure ASCII range
     if (code < 0x80) {
-        this._set[charCode(char)] = 1;
+        this._set[code] = 1;
     }
 
     // chaining
@@ -260,7 +260,7 @@ EncodeSet.extend = function (encodeSet, chars) {
 };
 
 /**
- * Determines whether the input value is EncodeSet or not.
+ * Determines whether the input value is an EncodeSet or not.
  *
  * @example
  * // returns true
@@ -270,7 +270,7 @@ EncodeSet.extend = function (encodeSet, chars) {
  * EncodeSet.isEncodeSet(new Set([28, 05]))
  *
  * @param {*} value The value to be tested
- * @returns {Boolean} true if the given value is EncodeSet; otherwise, false
+ * @returns {Boolean} true if the given value is an EncodeSet; otherwise, false
  */
 EncodeSet.isEncodeSet = function (value) {
     return Boolean(value) && (value instanceof EncodeSet);
