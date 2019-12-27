@@ -1,4 +1,9 @@
-/** @module encoder/percent-encode */
+/**
+ * This modules provides simple percent (URI) encoding.
+ *
+ * @private
+ * @module postman-url-encoder/encoder/percent-encode
+ */
 
 /**
  * @fileoverview
@@ -12,6 +17,7 @@
  * For example, "%20" is the percent-encoding for the binary octet "00100000"
  * (ABNF: %x20), which in US-ASCII corresponds to the space character (SP).
  *
+ * @see {@link https://en.wikipedia.org/wiki/Percent-encoding}
  * @see {@link https://tools.ietf.org/html/rfc3986#section-2.1}
  */
 

@@ -1,4 +1,28 @@
-/** @module encoder */
+/**
+ * This module helps to encode different URL components and expose utility
+ * methods to percent-encode a given string using an {@link EncodeSet}.
+ *
+ * @example
+ * const encoder = require('postman-url-encoder/encoder')
+ *
+ * // returns 'xn--48jwgn17gdel797d.com'
+ * var hostname = encoder.encodeHost('郵便屋さん.com'])
+ *
+ * @example <caption>Using EncodeSet</caption>
+ * var EncodeSet = require('postman-url-encoder/encoder').EncodeSet
+ *
+ * var fragmentEncodeSet = new EncodeSet([' ', '"', '<', '>', '`'])
+ *
+ * // returns false
+ * fragmentEncodeSet.has('['.charCodeAt(0))
+ *
+ * // returns true
+ * fragmentEncodeSet.has('<'.charCodeAt(0))
+ *
+ *
+ * @module postman-url-encoder/encoder
+ * @see {@link https://url.spec.whatwg.org/#url-representation}
+ */
 
 /**
  * @fileoverview
@@ -25,13 +49,44 @@ const url = require('url'),
 
     encodeSet = require('./encode-set'),
 
-    /** @type module:encoder/percent-encode~encode */
+    /**
+     * Percent-encode the given string with the given {@link EncodeSet}.
+     *
+     * @example <caption>Defaults to C0_CONTROL_ENCODE_SET</caption>
+     * // returns 'foo %00 bar'
+     * encode('foo \u0000 bar')
+     *
+     * @example <caption>Encode literal @ using custom EncodeSet</caption>
+     * // returns 'foo%40bar'
+     * encode('foo@bar', new EncodeSet(['@']))
+     *
+     * @function
+     * @param {String} value String to percent-encode
+     * @param {EncodeSet} [encodeSet=C0_CONTROL_ENCODE_SET] EncodeSet to use for encoding
+     * @returns {String} Percent-encoded string
+     *
+     * @see module:encoder/encode-set
+     */
     percentEncode = require('./percent-encode').encode,
 
-    /** @type module:encoder/percent-encode~encodeCharCode */
+    /**
+     * Percent encode a character with given code.
+     *
+     * @example
+     * // returns '%20'
+     * encodeCharCode(32)
+     *
+     * @function
+     * @param {Number} code Character code
+     * @returns {String} Percent-encoded character
+     */
     percentEncodeCharCode = require('./percent-encode').encodeCharCode,
 
-    /** @type module:encoder/encode-set~EncodeSet */
+    /**
+     * Represents a set of characters / bytes that should be percent-encoded.
+     *
+     * @type EncodeSet
+     */
     EncodeSet = encodeSet.EncodeSet,
 
     PATH_ENCODE_SET = encodeSet.PATH_ENCODE_SET,

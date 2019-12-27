@@ -1,3 +1,22 @@
+/**
+ * Implementation of the WHATWG URL Standard.
+ *
+ * @example
+ * const urlEncoder = require('postman-url-encoder')
+ *
+ * // Encoding URL string to Node.js compatible Url object
+ * urlEncoder.toNodeUrl('郵便屋さん.com/foo&bar/{baz}?q=("foo")#`hash`')
+ *
+ * // Encoding URI component
+ * urlEncoder.encode('qüêry štrìng')
+ *
+ * // Encoding query string object
+ * urlEncoder.encodeQueryString({ q1: 'foo', q2: ['bãr', 'baž'] })
+ *
+ * @module postman-url-encoder
+ * @see {@link https://url.spec.whatwg.org}
+ */
+
 const sdk = require('postman-collection'),
     querystring = require('querystring'),
 
@@ -57,7 +76,7 @@ function encode (value) {
  *
  * @example
  * // returns 'q1=foo&q2=bar&q2=baz'
- * encodeQueryParams({ q1: 'foo', q2: ['bar', 'baz'] })
+ * encodeQueryString({ q1: 'foo', q2: ['bar', 'baz'] })
  *
  * @param {Object} query Object representing query or urlencoded body
  * @returns {String} Percent-encoded string

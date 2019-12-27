@@ -1,8 +1,6 @@
-/** @module encoder/encode-set */
-
 /**
  * @fileoverview
- * Represents a set of characters / bytes that should be percent-encoded.
+ * An EncodeSet represents a set of characters that should be percent-encoded.
  *
  * Different characters need to be encoded in different parts of an URL.
  * For example, a literal ? question mark in an URL’s path would indicate the
@@ -134,7 +132,7 @@ function EncodeSet (chars) {
  * Appends a new character to the EncodeSet.
  *
  * @example
- * const xyzEncodeSet = new EncodeSet(['x', 'y', 'z'])
+ * var xyzEncodeSet = new EncodeSet(['x', 'y', 'z'])
  *
  * xyzEncodeSet
  *  .add('X')
@@ -169,7 +167,7 @@ EncodeSet.prototype.add = function (char) {
  * Refer: https://infra.spec.whatwg.org/#c0-control
  *
  * @example
- * const tildeEncodeSet = new EncodeSet(['~'])
+ * var tildeEncodeSet = new EncodeSet(['~'])
  *
  * // returns true
  * tildeEncodeSet.has('~'.charCodeAt(0))
@@ -198,8 +196,8 @@ EncodeSet.prototype.has = function (code) {
  * Creates a copy of the current EncodeSet.
  *
  * @example
- * const set1 = new EncodeSet(['<', '>'])
- * const set1Copy = set1.clone().add('=')
+ * var set1 = new EncodeSet(['<', '>'])
+ * var set1Copy = set1.clone().add('=')
  *
  * @returns {EncodeSet} New EncodeSet instance
  */
@@ -211,7 +209,7 @@ EncodeSet.prototype.clone = function () {
  * Seals the current EncodeSet to prevent new characters being added to it.
  *
  * @example
- * const set = new EncodeSet()
+ * var set = new EncodeSet()
  *
  * set.add(95)
  * set.has(95) // returns true
@@ -244,8 +242,8 @@ EncodeSet.prototype.seal = function () {
  * characters.
  *
  * @example
- * const fooEncodeSet = new EncodeSet(['f', 'o'])
- * const foobarEncodeSet = EncodeSet.extend(fooEncodeSet, new Set(['b', 'a', 'r']))
+ * var fooEncodeSet = new EncodeSet(['f', 'o'])
+ * var foobarEncodeSet = EncodeSet.extend(fooEncodeSet, new Set(['b', 'a', 'r']))
  *
  * @param {EncodeSet} encodeSet Instance of EncodeSet
  * @param {CharSet} chars Character set to encode
