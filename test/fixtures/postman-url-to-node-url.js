@@ -407,7 +407,7 @@ module.exports = [
         }
     },
     {
-        title: 'special characters in auth username',
+        title: 'special characters to encode in auth username',
         in: {
             auth: { user: '"#/:;<=>?@[\\]^`{|} ', password: 'pswd' },
             host: 'postman.com'
@@ -428,7 +428,28 @@ module.exports = [
         }
     },
     {
-        title: 'special characters in auth password',
+        title: 'special characters to not encode in auth username',
+        in: {
+            auth: { user: '~!$%&*()-_+,.\'', password: 'pswd' },
+            host: 'postman.com'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: '~!$%&*()-_+,.\':pswd',
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: null,
+            href: 'http://~!$%&*()-_+,.\':pswd@postman.com/'
+        }
+    },
+    {
+        title: 'special characters to encode in auth password',
         in: {
             auth: { user: 'usr', password: '"#/:;<=>?@[\\]^`{|} ' },
             host: 'postman.com'
@@ -446,6 +467,27 @@ module.exports = [
             path: '/',
             hash: null,
             href: 'http://usr:%22%23%2F%3A%3B%3C%3D%3E%3F%40%5B%5C%5D%5E%60%7B%7C%7D%20@postman.com/'
+        }
+    },
+    {
+        title: 'special characters to not encode in auth password',
+        in: {
+            auth: { user: 'usr', password: '~!$%&*()-_+,.\'' },
+            host: 'postman.com'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: 'usr:~!$%&*()-_+,.\'',
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: null,
+            href: 'http://usr:~!$%&*()-_+,.\'@postman.com/'
         }
     },
     {
@@ -531,7 +573,7 @@ module.exports = [
         }
     },
     {
-        title: 'special characters in path',
+        title: 'special characters to encode in path',
         in: {
             host: 'postman.com',
             path: '/ /"/#/</>/?/`/{/}'
@@ -549,6 +591,27 @@ module.exports = [
             path: '/%20/%22/%23/%3C/%3E/%3F/%60/%7B/%7D',
             hash: null,
             href: 'http://postman.com/%20/%22/%23/%3C/%3E/%3F/%60/%7B/%7D'
+        }
+    },
+    {
+        title: 'special characters to not encode in path',
+        in: {
+            host: 'postman.com',
+            path: '/~/!/@/$/%/^/&/*/(/)/_/-/+/=/[/]/;/:/\'/,/./|'
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/~/!/@/$/%/^/&/*/(/)/_/-/+/=/[/]/;/:/\'/,/./|',
+            query: null,
+            search: null,
+            path: '/~/!/@/$/%/^/&/*/(/)/_/-/+/=/[/]/;/:/\'/,/./|',
+            hash: null,
+            href: 'http://postman.com/~/!/@/$/%/^/&/*/(/)/_/-/+/=/[/]/;/:/\'/,/./|'
         }
     },
     {
@@ -594,10 +657,10 @@ module.exports = [
         }
     },
     {
-        title: 'special characters in query param key',
+        title: 'special characters to encode in query param key',
         in: {
             host: 'postman.com',
-            query: [{ key: ' "#\'<>', value: 'v1' }]
+            query: [{ key: ' "#\'<>=&', value: 'v1' }]
         },
         out: {
             protocol: 'http:',
@@ -607,18 +670,18 @@ module.exports = [
             port: null,
             host: 'postman.com',
             pathname: '/',
-            query: '%20%22%23%27%3C%3E=v1',
-            search: '?%20%22%23%27%3C%3E=v1',
-            path: '/?%20%22%23%27%3C%3E=v1',
+            query: '%20%22%23%27%3C%3E%3D%26=v1',
+            search: '?%20%22%23%27%3C%3E%3D%26=v1',
+            path: '/?%20%22%23%27%3C%3E%3D%26=v1',
             hash: null,
-            href: 'http://postman.com/?%20%22%23%27%3C%3E=v1'
+            href: 'http://postman.com/?%20%22%23%27%3C%3E%3D%26=v1'
         }
     },
     {
-        title: 'special characters in query param value',
+        title: 'special characters to not encode in query param key',
         in: {
             host: 'postman.com',
-            query: [{ key: 'q1', value: ' "#\'<>' }]
+            query: [{ key: '`~!@$%^*()_-+{}[]:;,.?/|\\', value: 'v1' }]
         },
         out: {
             protocol: 'http:',
@@ -628,11 +691,53 @@ module.exports = [
             port: null,
             host: 'postman.com',
             pathname: '/',
-            query: 'q1=%20%22%23%27%3C%3E',
-            search: '?q1=%20%22%23%27%3C%3E',
-            path: '/?q1=%20%22%23%27%3C%3E',
+            query: '`~!@$%^*()_-+{}[]:;,.?/|\\=v1',
+            search: '?`~!@$%^*()_-+{}[]:;,.?/|\\=v1',
+            path: '/?`~!@$%^*()_-+{}[]:;,.?/|\\=v1',
             hash: null,
-            href: 'http://postman.com/?q1=%20%22%23%27%3C%3E'
+            href: 'http://postman.com/?`~!@$%^*()_-+{}[]:;,.?/|\\=v1'
+        }
+    },
+    {
+        title: 'special characters to encode in query param value',
+        in: {
+            host: 'postman.com',
+            query: [{ key: 'q1', value: ' "#\'<>=&' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=%20%22%23%27%3C%3E%3D%26',
+            search: '?q1=%20%22%23%27%3C%3E%3D%26',
+            path: '/?q1=%20%22%23%27%3C%3E%3D%26',
+            hash: null,
+            href: 'http://postman.com/?q1=%20%22%23%27%3C%3E%3D%26'
+        }
+    },
+    {
+        title: 'special characters to not encode in query param value',
+        in: {
+            host: 'postman.com',
+            query: [{ key: 'q1', value: '`~!@$%^*()_-+{}[]:;,.?/|\\' }]
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: 'q1=`~!@$%^*()_-+{}[]:;,.?/|\\',
+            search: '?q1=`~!@$%^*()_-+{}[]:;,.?/|\\',
+            path: '/?q1=`~!@$%^*()_-+{}[]:;,.?/|\\',
+            hash: null,
+            href: 'http://postman.com/?q1=`~!@$%^*()_-+{}[]:;,.?/|\\'
         }
     },
     {
@@ -720,7 +825,7 @@ module.exports = [
         }
     },
     {
-        title: 'special characters in hash',
+        title: 'special characters to encode in hash',
         in: {
             host: 'postman.com',
             hash: ' "<>`'
@@ -738,6 +843,27 @@ module.exports = [
             path: '/',
             hash: '#%20%22%3C%3E%60',
             href: 'http://postman.com/#%20%22%3C%3E%60'
+        }
+    },
+    {
+        title: 'special characters to not encode in hash',
+        in: {
+            host: 'postman.com',
+            hash: '~!@#$%^&*()-_=+[]{},./?;:\\|\''
+        },
+        out: {
+            protocol: 'http:',
+            slashes: true,
+            auth: null,
+            hostname: 'postman.com',
+            port: null,
+            host: 'postman.com',
+            pathname: '/',
+            query: null,
+            search: null,
+            path: '/',
+            hash: '#~!@#$%^&*()-_=+[]{},./?;:\\|\'',
+            href: 'http://postman.com/#~!@#$%^&*()-_=+[]{},./?;:\\|\''
         }
     },
     {
