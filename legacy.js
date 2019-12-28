@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 var url = require('url'),
 
     /**
