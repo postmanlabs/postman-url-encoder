@@ -189,7 +189,7 @@ function toNodeUrl (url) {
         nodeUrl.port = url.port.toString();
 
         // #host = (#hostname):(#port)
-        nodeUrl.host = (nodeUrl.hostname || E) + COLON + nodeUrl.port;
+        nodeUrl.host = nodeUrl.hostname + COLON + nodeUrl.port;
 
         // #href = protocol://user:password@host.name:port
         nodeUrl.href += COLON + nodeUrl.port;
@@ -212,7 +212,7 @@ function toNodeUrl (url) {
         nodeUrl.path = nodeUrl.pathname + nodeUrl.search;
 
         // #href = protocol://user:password@host.name:port/p/a/t/h?q=query
-        nodeUrl.href = (nodeUrl.href || E) + nodeUrl.search;
+        nodeUrl.href += nodeUrl.search;
     }
 
     if (url.hash) {
