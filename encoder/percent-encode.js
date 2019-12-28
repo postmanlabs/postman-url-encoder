@@ -1,6 +1,9 @@
 /**
  * This modules provides simple percent (URI) encoding.
  *
+ * @note Safety check for input types is not done intentionally as these
+ * functions are invoked in the hot code path.
+ *
  * @private
  * @module postman-url-encoder/encoder/percent-encode
  */
@@ -21,15 +24,9 @@
  * @see {@link https://tools.ietf.org/html/rfc3986#section-2.1}
  */
 
-const encodeSet = require('./encode-set'),
-
-    EncodeSet = encodeSet.EncodeSet,
-    C0_CONTROL_ENCODE_SET = encodeSet.C0_CONTROL_ENCODE_SET,
-
-    E = '',
+const E = '',
     ZERO = '0',
-    PERCENT = '%',
-    STRING = 'string';
+    PERCENT = '%';
 
 /**
  * Checks if character with given code is valid hexadecimal digit or not.
@@ -80,28 +77,15 @@ function encodeCharCode (code) {
 /**
  * Percent-encode the given string with the given {@link EncodeSet}.
  *
- * @example <caption>Defaults to C0_CONTROL_ENCODE_SET</caption>
- * // returns 'foo %00 bar'
- * encode('foo \u0000 bar')
- *
- * @example <caption>Encode literal @ using custom EncodeSet</caption>
+ * @example
  * // returns 'foo%40bar'
  * encode('foo@bar', new EncodeSet(['@']))
  *
  * @param {String} value String to percent-encode
- * @param {EncodeSet} [encodeSet=C0_CONTROL_ENCODE_SET] EncodeSet to use for encoding
+ * @param {EncodeSet} encodeSet EncodeSet to use for encoding
  * @returns {String} Percent-encoded string
  */
 function encode (value, encodeSet) {
-    if (!(value && typeof value === STRING)) {
-        return E;
-    }
-
-    // defaults to C0_CONTROL_ENCODE_SET
-    if (!EncodeSet.isEncodeSet(encodeSet)) {
-        encodeSet = C0_CONTROL_ENCODE_SET;
-    }
-
     var i,
         ii,
         charCode,

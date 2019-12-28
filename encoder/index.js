@@ -49,50 +49,16 @@ const url = require('url'),
 
     encodeSet = require('./encode-set'),
 
-    /**
-     * Percent-encode the given string with the given {@link EncodeSet}.
-     *
-     * @example <caption>Defaults to C0_CONTROL_ENCODE_SET</caption>
-     * // returns 'foo %00 bar'
-     * encode('foo \u0000 bar')
-     *
-     * @example <caption>Encode literal @ using custom EncodeSet</caption>
-     * // returns 'foo%40bar'
-     * encode('foo@bar', new EncodeSet(['@']))
-     *
-     * @function
-     * @param {String} value String to percent-encode
-     * @param {EncodeSet} [encodeSet=C0_CONTROL_ENCODE_SET] EncodeSet to use for encoding
-     * @returns {String} Percent-encoded string
-     *
-     * @see module:encoder/encode-set
-     */
-    percentEncode = require('./percent-encode').encode,
+    _percentEncode = require('./percent-encode').encode,
+    _percentEncodeCharCode = require('./percent-encode').encodeCharCode,
 
-    /**
-     * Percent encode a character with given code.
-     *
-     * @example
-     * // returns '%20'
-     * encodeCharCode(32)
-     *
-     * @function
-     * @param {Number} code Character code
-     * @returns {String} Percent-encoded character
-     */
-    percentEncodeCharCode = require('./percent-encode').encodeCharCode,
-
-    /**
-     * Represents a set of characters / bytes that should be percent-encoded.
-     *
-     * @type EncodeSet
-     */
     EncodeSet = encodeSet.EncodeSet,
 
     PATH_ENCODE_SET = encodeSet.PATH_ENCODE_SET,
     QUERY_ENCODE_SET = encodeSet.QUERY_ENCODE_SET,
     USERINFO_ENCODE_SET = encodeSet.USERINFO_ENCODE_SET,
     FRAGMENT_ENCODE_SET = encodeSet.FRAGMENT_ENCODE_SET,
+    C0_CONTROL_ENCODE_SET = encodeSet.C0_CONTROL_ENCODE_SET,
 
     E = '',
     EQUALS = '=',
@@ -120,6 +86,7 @@ const url = require('url'),
         // use faster internal method
         url.domainToASCII :
         // else, lazy load `punycode` dependency
+        /* istanbul ignore next */
         require('punycode').toASCII;
 
 /**
@@ -140,7 +107,7 @@ const url = require('url'),
  * // returns 'xn--iñvalid.com'
  * encodeHost('xn--iñvalid.com')
  *
- * @param {String|String[]} hostName Unencoded hostname (ex. 'foo.com' or ['foo', 'com'])
+ * @param {String|String[]} hostName host or domain name
  * @returns {String} Punycode-encoded hostname
  */
 function encodeHost (hostName) {
@@ -166,7 +133,7 @@ function encodeHost (hostName) {
  * // returns 'foo/bar/%20%22%3C%3E%60%23%3F%7B%7D'
  * encodePath(['foo', 'bar', ' "<>\`#?{}'])
  *
- * @param {String|String[]} path Unencoded path (ex. '/foo/bar' or ['foo', 'bar'])
+ * @param {String|String[]} path Path or path segments
  * @returns {String} Percent-encoded path
  */
 function encodePath (path) {
@@ -178,7 +145,7 @@ function encodePath (path) {
         return E;
     }
 
-    return percentEncode(path, PATH_ENCODE_SET);
+    return _percentEncode(path, PATH_ENCODE_SET);
 }
 
 /**
@@ -196,7 +163,7 @@ function encodeUserInfo (param) {
         return E;
     }
 
-    return percentEncode(param, USERINFO_ENCODE_SET);
+    return _percentEncode(param, USERINFO_ENCODE_SET);
 }
 
 /**
@@ -206,7 +173,7 @@ function encodeUserInfo (param) {
  * // returns 'fragment#%20%22%3C%3E%60'
  * encodeHash('fragment# "<>`')
  *
- * @param {String} fragment fragment to encode
+ * @param {String} fragment Hash or fragment identifier to encode
  * @returns {String} Percent-encoded fragment
  */
 function encodeFragment (fragment) {
@@ -214,7 +181,7 @@ function encodeFragment (fragment) {
         return E;
     }
 
-    return percentEncode(fragment, FRAGMENT_ENCODE_SET);
+    return _percentEncode(fragment, FRAGMENT_ENCODE_SET);
 }
 
 /**
@@ -236,17 +203,17 @@ function encodeQueryParam (param) {
     }
 
     if (typeof param === STRING) {
-        return percentEncode(param, QUERY_ENCODE_SET);
+        return _percentEncode(param, QUERY_ENCODE_SET);
     }
 
     var key = param.key,
         value = param.value;
 
-    if (key === undefined || key === null) {
+    if (typeof key !== STRING) {
         key = E;
     }
 
-    if (value === undefined || value === null) {
+    if (typeof value !== STRING) {
         value = E;
     }
 
@@ -254,10 +221,7 @@ function encodeQueryParam (param) {
         return E;
     }
 
-    key = percentEncode(key, QUERY_ENCODE_SET);
-    value = percentEncode(value, QUERY_ENCODE_SET);
-
-    return key + EQUALS + value;
+    return _percentEncode(key, QUERY_ENCODE_SET) + EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
 }
 
 /**
@@ -331,6 +295,53 @@ function encodeQueryParams (params) {
     return result;
 }
 
+/**
+ * Percent-encode the given string with the given {@link EncodeSet}.
+ *
+ * @example <caption>Defaults to C0_CONTROL_ENCODE_SET</caption>
+ * // returns 'foo %00 bar'
+ * percentEncode('foo \u0000 bar')
+ *
+ * @example <caption>Encode literal @ using custom EncodeSet</caption>
+ * // returns 'foo%40bar'
+ * percentEncode('foo@bar', new EncodeSet(['@']))
+ *
+ * @param {String} value String to percent-encode
+ * @param {EncodeSet} [encodeSet=C0_CONTROL_ENCODE_SET] EncodeSet to use for encoding
+ * @returns {String} Percent-encoded string
+ */
+function percentEncode (value, encodeSet) {
+    if (!(value && typeof value === STRING)) {
+        return E;
+    }
+
+    // defaults to C0_CONTROL_ENCODE_SET
+    if (!EncodeSet.isEncodeSet(encodeSet)) {
+        encodeSet = C0_CONTROL_ENCODE_SET;
+    }
+
+    return _percentEncode(value, encodeSet);
+}
+
+/**
+ * Percent encode a character with given code.
+ *
+ * @example
+ * // returns '%20'
+ * percentEncodeCharCode(32)
+ *
+ * @param {Number} code Character code
+ * @returns {String} Percent-encoded character
+ */
+function percentEncodeCharCode (code) {
+    // ensure [0x00, 0xFF] range
+    if (!(Number.isInteger(code) && code >= 0 && code <= 0xFF)) {
+        return E;
+    }
+
+    return _percentEncodeCharCode(code);
+}
+
 module.exports = {
     // URL components
     encodeHost,
@@ -340,7 +351,7 @@ module.exports = {
     encodeQueryParam,
     encodeQueryParams,
 
-    // Percent Encode Set
+    /** @type EncodeSet */
     EncodeSet,
 
     // Utilities
