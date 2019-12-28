@@ -74,4 +74,26 @@ describe('.toNodeUrl', function () {
         expect(toNodeUrl(Function)).to.eql(defaultUrl);
         expect(toNodeUrl({ host: 'example.com' })).to.eql(defaultUrl);
     });
+
+    describe('FIXTURES', function () {
+        describe('with url string', function () {
+            var list = require('../fixtures/string-url-to-node-url');
+
+            list.forEach(function (url) {
+                it(url.title, function () {
+                    expect(toNodeUrl(url.in)).to.eql(url.out);
+                });
+            });
+        });
+
+        describe('with PostmanUrl', function () {
+            var list = require('../fixtures/postman-url-to-node-url');
+
+            list.forEach(function (url) {
+                it(url.title, function () {
+                    expect(toNodeUrl(new PostmanUrl(url.in))).to.eql(url.out);
+                });
+            });
+        });
+    });
 });
