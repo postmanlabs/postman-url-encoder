@@ -79,6 +79,14 @@ describe('.toNodeUrl', function () {
         describe('.protocol', function () {
             it('should defaults to http:', function () {
                 expect(toNodeUrl('example.com')).to.have.property('protocol', 'http:');
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.have.property('protocol', 'http:');
+            });
+
+            it('should convert to lower case', function () {
+                expect(toNodeUrl('HTTP://example.com')).to.have.property('protocol', 'http:');
+                expect(toNodeUrl('POSTMAN://example.com')).to.have.property('protocol', 'postman:');
             });
 
             it('should defaults to http: for non-string protocols', function () {
@@ -109,6 +117,19 @@ describe('.toNodeUrl', function () {
         });
 
         describe('.auth', function () {
+            it('should be null if user info is absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.have.property('auth', null);
+
+                expect(toNodeUrl('example.com')).to.have.property('auth', null);
+            });
+
+            it('should preserve characters case', function () {
+                expect(toNodeUrl('UsEr:PaSsWoRd@example.com'))
+                    .to.have.property('auth', 'UsEr:PaSsWoRd');
+            });
+
             it('should percent-encode the reserved and unicode characters', function () {
                 expect(toNodeUrl('`user`:pâ$$@example.com'))
                     .to.have.property('auth', '%60user%60:p%C3%A2$$');
@@ -134,6 +155,8 @@ describe('.toNodeUrl', function () {
                         password: 'secret#123'
                     }
                 }))).to.have.property('auth', ':secret%23123');
+
+                expect(toNodeUrl('http://:secret@example.com')).to.have.property('auth', ':secret');
             });
 
             it('should ignore the empty and non-string password', function () {
@@ -151,10 +174,28 @@ describe('.toNodeUrl', function () {
                         user: 'root@domain.com'
                     }
                 }))).to.have.property('auth', 'root%40domain.com');
+
+                expect(toNodeUrl('http://root@example.com')).to.have.property('auth', 'root');
             });
         });
 
         describe('.host and .hostname', function () {
+            it('should be empty string if host and port are absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    path: '/p/a/t/h'
+                }))).to.include({
+                    host: '',
+                    hostname: ''
+                });
+            });
+
+            it('should convert to lower case', function () {
+                expect(toNodeUrl('EXAMPLE.COM')).to.include({
+                    host: 'example.com',
+                    hostname: 'example.com'
+                });
+            });
+
             it('should do punycode ASCII serialization of the domain', function () {
                 expect(toNodeUrl('😎.cool')).to.include({
                     host: 'xn--s28h.cool',
@@ -223,6 +264,14 @@ describe('.toNodeUrl', function () {
         });
 
         describe('.port', function () {
+            it('should be null if port is absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.have.property('port', null);
+
+                expect(toNodeUrl('example.com')).to.have.property('port', null);
+            });
+
             it('should accept port as string', function () {
                 expect(toNodeUrl(new PostmanUrl({
                     host: 'example.com',
@@ -239,6 +288,18 @@ describe('.toNodeUrl', function () {
         });
 
         describe('.hash', function () {
+            it('should be null if hash is absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.have.property('hash', null);
+
+                expect(toNodeUrl('example.com')).to.have.property('hash', null);
+            });
+
+            it('should preserve characters case', function () {
+                expect(toNodeUrl('example.com#HaSh')).to.have.property('hash', '#HaSh');
+            });
+
             it('should percent-encode the reserved and unicode characters', function () {
                 expect(toNodeUrl('example.com#(😎)')).to.have.property('hash', '#(%F0%9F%98%8E)');
             });
@@ -253,6 +314,27 @@ describe('.toNodeUrl', function () {
         });
 
         describe('.query and .search', function () {
+            it('should be null if query is absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.include({
+                    query: null,
+                    search: null
+                });
+
+                expect(toNodeUrl('example.com')).to.include({
+                    query: null,
+                    search: null
+                });
+            });
+
+            it('should preserve characters case', function () {
+                expect(toNodeUrl('example.com?UPPER=CASE&lower=case')).to.include({
+                    query: 'UPPER=CASE&lower=case',
+                    search: '?UPPER=CASE&lower=case'
+                });
+            });
+
             it('should percent-encode the reserved and unicode characters', function () {
                 expect(toNodeUrl('example.com?q1=(1 2)&q2=𝌆й你ス')).to.include({
                     query: 'q1=(1%202)&q2=%F0%9D%8C%86%D0%B9%E4%BD%A0%E3%82%B9',
@@ -276,9 +358,37 @@ describe('.toNodeUrl', function () {
                     search: '?%20=&%22=&%23=&%26=&%27=&%3C=&%3E='
                 });
             });
+
+            it('should not trim trailing whitespace characters', function () {
+                expect(toNodeUrl('example.com?q1=v1 \t\r\n\v\f')).to.include({
+                    query: 'q1=v1%20%09%0D%0A%0B%0C',
+                    search: '?q1=v1%20%09%0D%0A%0B%0C'
+                });
+            });
         });
 
         describe('.path and pathname', function () {
+            it('should be `/` if path is absent', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com'
+                }))).to.include({
+                    path: '/',
+                    pathname: '/'
+                });
+
+                expect(toNodeUrl('example.com')).to.include({
+                    path: '/',
+                    pathname: '/'
+                });
+            });
+
+            it('should preserve characters case', function () {
+                expect(toNodeUrl('example.com/UPPER_CASE/lower_case')).to.include({
+                    path: '/UPPER_CASE/lower_case',
+                    pathname: '/UPPER_CASE/lower_case'
+                });
+            });
+
             it('should percent-encode the reserved and unicode characters', function () {
                 expect(toNodeUrl('example.com/foo/你ス/(⚡️)')).to.include({
                     path: '/foo/%E4%BD%A0%E3%82%B9/(%E2%9A%A1%EF%B8%8F)',
@@ -303,6 +413,13 @@ describe('.toNodeUrl', function () {
                 });
             });
 
+            it('should not trim trailing whitespace characters', function () {
+                expect(toNodeUrl('example.com/path ')).to.include({
+                    path: '/path%20',
+                    pathname: '/path%20'
+                });
+            });
+
             it('should add query to the path but not to the pathname', function () {
                 expect(toNodeUrl('example.com/foo?q=bar')).to.include({
                     path: '/foo?q=bar',
@@ -321,28 +438,6 @@ describe('.toNodeUrl', function () {
             it('should not double encode the characters', function () {
                 expect(toNodeUrl('postman://xn--48jwgn17gdel797d.com/[%E2%9A%A1%EF%B8%8F]?q1=(1%202)')).to.include({
                     href: 'postman://xn--48jwgn17gdel797d.com/[%E2%9A%A1%EF%B8%8F]?q1=(1%202)'
-                });
-            });
-        });
-    });
-
-    describe('FIXTURES', function () {
-        describe('with url string', function () {
-            var list = require('../fixtures/string-url-to-node-url');
-
-            list.forEach(function (url) {
-                it(url.title, function () {
-                    expect(toNodeUrl(url.in)).to.eql(url.out);
-                });
-            });
-        });
-
-        describe('with PostmanUrl', function () {
-            var list = require('../fixtures/postman-url-to-node-url');
-
-            list.forEach(function (url) {
-                it(url.title, function () {
-                    expect(toNodeUrl(new PostmanUrl(url.in))).to.eql(url.out);
                 });
             });
         });
