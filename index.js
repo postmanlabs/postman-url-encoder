@@ -56,6 +56,8 @@ const sdk = require('postman-collection'),
 /**
  * Percent-encode the given string using QUERY_ENCODE_SET.
  *
+ * @deprecated since version 2.0, use {@link encodeQueryParam} instead.
+ *
  * @example
  * // returns 'foo%20%22%23%26%27%3C%3D%3E%20bar'
  * encode('foo "#&\'<=> bar')
