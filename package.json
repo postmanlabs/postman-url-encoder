@@ -21,14 +21,17 @@
   "scripts": {
     "test": "npm run test-lint && npm run test-unit",
     "test-lint": "node npm/test-lint.js",
-    "test-unit": "node npm/test-unit.js"
+    "test-unit": "node npm/test-unit.js",
+    "test-benchmark": "node npm/test-benchmark.js"
   },
   "dependencies": {
     "postman-collection": "^3.5.5",
     "punycode": "^2.1.1"
   },
   "devDependencies": {
+    "@postman/csv-parse": "^4.0.2",
     "async": "^3.1.0",
+    "bipbip": "^0.4.1",
     "chai": "^4.2.0",
     "chalk": "^2.4.2",
     "colors": "^1.4.0",
