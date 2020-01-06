@@ -442,4 +442,29 @@ describe('.toNodeUrl', function () {
             });
         });
     });
+
+    describe('SECURITY', function () {
+        // Refer: https://www.owasp.org/index.php/Double_Encoding
+        it('should not double encode the characters', function () {
+            expect(toNodeUrl('%22user%22:p%C3%A2$$@xn--48jwgn17gdel797d.com/%E4%BD?q1=(1%202)#(%F0%9F)')).to.include({
+                auth: '%22user%22:p%C3%A2$$',
+                host: 'xn--48jwgn17gdel797d.com',
+                hostname: 'xn--48jwgn17gdel797d.com',
+                pathname: '/%E4%BD',
+                path: '/%E4%BD?q1=(1%202)',
+                query: 'q1=(1%202)',
+                search: '?q1=(1%202)',
+                hash: '#(%F0%9F)'
+            });
+        });
+
+        // eslint-disable-next-line max-len
+        // Refer: https://docs.google.com/presentation/d/e/2PACX-1vSTFsJ9t0DatXbjmEGL8sKxt53gf6a1djHp_8Wbj2ZeTB6IfR-HsRD537-L5PgzVrs97bJu1tzJ1Smo/pub?slide=id.g32d0ed6ec2_0_45
+        it('should handle encoded hostname', function () {
+            expect(toNodeUrl('postman.com%60f.society.org')).to.include({
+                host: 'postman.com`f.society.org',
+                hostname: 'postman.com`f.society.org'
+            });
+        });
+    });
 });
