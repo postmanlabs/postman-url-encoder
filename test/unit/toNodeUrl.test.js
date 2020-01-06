@@ -1,5 +1,8 @@
-const expect = require('chai').expect,
+const fs = require('fs'),
+    path = require('path'),
+    expect = require('chai').expect,
     PostmanUrl = require('postman-collection').Url,
+    parseCsv = require('@postman/csv-parse/lib/sync'),
 
     toNodeUrl = require('../../').toNodeUrl;
 
@@ -46,6 +49,21 @@ describe('.toNodeUrl', function () {
             pathname: '/f00/%23/b%C3%A4r',
             path: '/f00/%23/b%C3%A4r?q=(A%20%26%20B)',
             href: 'postman://:%F0%9F%94%92@127.0.0.1/f00/%23/b%C3%A4r?q=(A%20%26%20B)'
+        });
+    });
+
+    it('should return same result for string url and PostmanUrl', function () {
+        var testCases = fs.readFileSync(path.join(__dirname, '../fixtures/urlList.csv'));
+
+        testCases = parseCsv(testCases, {
+            columns: true,
+            trim: false
+        });
+
+        testCases.forEach(function (testcase) {
+            var postmanUrl = new PostmanUrl(testcase.url);
+
+            expect(toNodeUrl(testcase.url), testcase.description).to.eql(toNodeUrl(postmanUrl));
         });
     });
 
