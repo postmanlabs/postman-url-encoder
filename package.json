@@ -1,28 +1,50 @@
 {
   "name": "postman-url-encoder",
-  "version": "1.0.3",
-  "description": " It encodes the given url string as per RFC 3986.",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha unit-test.spec.js"
-  },
+  "description": "Implementation of the WHATWG URL Standard",
+  "author": "Postman Labs <help@getpostman.com>",
+  "version": "2.0.0",
+  "license": "Apache-2.0",
+  "keywords": [
+    "postman",
+    "url-encoder",
+    "whatwg-url"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/postmanlabs/postman-url-encoder.git"
   },
-  "keywords": [
-    "postman",
-    "url-encoder"
-  ],
-  "author": "Postman Labs <help@getpostman.com> (=)",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/postmanlabs/postman-url-encoder/issues"
   },
   "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
+  "main": "index.js",
+  "scripts": {
+    "build-docs": "node npm/build-docs.js",
+    "publish-docs": "node npm/publish-docs.js",
+    "test": "npm run test-lint && npm run test-unit",
+    "test-lint": "node npm/test-lint.js",
+    "test-unit": "node npm/test-unit.js",
+    "test-benchmark": "node npm/test-benchmark.js"
+  },
+  "dependencies": {
+    "postman-collection": "^3.5.5",
+    "punycode": "^2.1.1"
+  },
   "devDependencies": {
-    "expect.js": "^0.3.1",
-    "mocha": "^3.0.0",
-    "postman-collection": "^3.5.4"
+    "@postman/csv-parse": "^4.0.2",
+    "async": "^3.1.0",
+    "bipbip": "^0.4.1",
+    "chai": "^4.2.0",
+    "chalk": "^2.4.2",
+    "colors": "^1.4.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-jsdoc": "^18.4.4",
+    "eslint-plugin-security": "^1.4.0",
+    "jsdoc": "^3.6.3",
+    "mocha": "^6.2.2",
+    "nyc": "^14.1.1",
+    "postman-jsdoc-theme": "0.0.3",
+    "recursive-readdir": "^2.2.2",
+    "shelljs": "^0.8.3"
   }
 }
