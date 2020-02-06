@@ -1,25 +1,23 @@
-master:
+2.0.0:
+  date: 2020-02-06
+  new features:
+    - Implementation of the WHATWG URL Standard
+    - Introduces new `/encoder` module with various encoding helpers
+    - Method `toNodeUrl()` now follows the WHATWG URL standard for encoding
   breaking changes:
-    - Deprecated `toNodeUrl()` function and renamed it to `toLegacyNodeUrl()`
+    - Renamed legacy `toNodeUrl()` method to `toLegacyNodeUrl()`
     - |
       Changed `encode()` function to encode SPACE, ("), (#), (&), ('), (<),
       (=), and (>). In previous versions, it was encoding SPACE, (!), ("), ((),
       ()), (<), (>), (%), ('), and (*).
+    - Deprecated `toLegacyNodeUrl()` in favor of `toNodeUrl()`
+    - Deprecated `encode()` in favor of `encodeQueryParam()`
     - |
       Dropped support for following methods:
         -> percentEncode()
         -> isPreEncoded()
         -> isPreEncodedCharacter()
         -> charactersToPercentEncode()
-  new features:
-    - Added `toNodeUrl()` function which uses WHATWG URL standard
-    - |
-      Added encoder APIs with various encoding helpers
-
-        ```javascript
-        const encoder = require('postman-url-encoder/encoder')
-        encoder.encodeHost('郵便屋さん.com']);
-        ```
   chores:
     - Updated dependencies
     - Update license from MIT to Apache-2.0
@@ -33,8 +31,8 @@ master:
   date: 2019-04-08
   new features:
     - >-
-      Added `toNodeUrl()` function to convert a string URL into Node's URL
-      type object
+      Added `toNodeUrl()` function to convert a string URL into Node's URL type
+      object
 
 1.0.1:
   date: 2017-02-01
