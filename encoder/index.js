@@ -207,21 +207,21 @@ function encodeQueryParam (param) {
     }
 
     var key = param.key,
-        value = param.value;
+        value = param.value,
+        result;
 
-    if (typeof key !== STRING) {
-        key = E;
+    if (typeof key === STRING) {
+        result = _percentEncode(key, QUERY_ENCODE_SET);
+    }
+    else {
+        result = E;
     }
 
-    if (typeof value !== STRING) {
-        value = E;
+    if (typeof value === STRING) {
+        result += EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
     }
 
-    if (key === E && value === E) {
-        return E;
-    }
-
-    return _percentEncode(key, QUERY_ENCODE_SET) + EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
+    return result;
 }
 
 /**
