@@ -370,10 +370,19 @@ describe('.toNodeUrl', function () {
             it('should percent-encode SPACE, ("), (#), (&), (\'), (<), (=), and (>)', function () {
                 expect(toNodeUrl(new PostmanUrl({
                     host: 'example.com',
-                    query: [' ', '"', '#', '&', '\'', '<', '=', '>']
+                    query: [
+                        { key: ' ' },
+                        { key: '"' },
+                        { key: '#' },
+                        { key: '&' },
+                        { key: '\'' },
+                        { key: '<' },
+                        { key: '=' },
+                        { key: '>' }
+                    ]
                 }))).to.include({
-                    query: '%20=&%22=&%23=&%26=&%27=&%3C=&%3E=',
-                    search: '?%20=&%22=&%23=&%26=&%27=&%3C=&%3E='
+                    query: '%20&%22&%23&%26&%27&%3C&%3D&%3E',
+                    search: '?%20&%22&%23&%26&%27&%3C&%3D&%3E'
                 });
             });
 

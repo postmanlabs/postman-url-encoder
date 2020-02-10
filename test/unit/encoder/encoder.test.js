@@ -277,8 +277,24 @@ describe('encoder', function () {
             expect(encoder.encodeQueryParam({ value: 'bar' })).to.eql('=bar');
         });
 
+        it('should handle param object with null key', function () {
+            expect(encoder.encodeQueryParam({ key: null, value: 'bar' })).to.eql('=bar');
+        });
+
         it('should handle param object without value', function () {
-            expect(encoder.encodeQueryParam({ key: 'foo' })).to.eql('foo=');
+            expect(encoder.encodeQueryParam({ key: 'foo' })).to.eql('foo');
+        });
+
+        it('should handle param object with null value', function () {
+            expect(encoder.encodeQueryParam({ key: 'foo', value: null })).to.eql('foo');
+        });
+
+        it('should handle param object with empty value', function () {
+            expect(encoder.encodeQueryParam({ key: 'foo', value: '' })).to.eql('foo=');
+        });
+
+        it('should handle param object with empty key and empty value', function () {
+            expect(encoder.encodeQueryParam({ key: '', value: '' })).to.eql('=');
         });
 
         it('should return empty string for invalid param object', function () {
@@ -287,7 +303,7 @@ describe('encoder', function () {
         });
 
         it('should ignore non-string value in param object', function () {
-            expect(encoder.encodeQueryParam({ key: 'q', value: 123 })).to.eql('q=');
+            expect(encoder.encodeQueryParam({ key: 'q', value: 123 })).to.eql('q');
             expect(encoder.encodeQueryParam({ value: true })).to.eql('');
         });
 
