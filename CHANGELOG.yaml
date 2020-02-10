@@ -1,3 +1,9 @@
+master:
+  fixed bugs:
+    - >-
+      GH-9 Fixed a bug where query params without value were changed to
+      params with empty value while encoding single param
+
 2.0.0:
   date: 2020-02-06
   new features:
