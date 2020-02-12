@@ -242,11 +242,11 @@ function encodeQueryParams (params) {
         j,
         ii,
         jj,
-        encoded,
         paramKey,
         paramKeys,
         paramValue,
-        result = E;
+        result = E,
+        notFirstParam = false;
 
     if (!(params && typeof params === OBJECT)) {
         return E;
@@ -260,10 +260,11 @@ function encodeQueryParams (params) {
                 continue;
             }
 
-            encoded = encodeQueryParam(params[i]);
+            // don't add '&' for the very first enabled param
+            notFirstParam && (result += AMPERSAND);
+            notFirstParam = true;
 
-            result && encoded && (result += AMPERSAND);
-            result += encoded;
+            result += encodeQueryParam(params[i]);
         }
 
         return result;
@@ -279,16 +280,19 @@ function encodeQueryParams (params) {
         // { key: ['value1', 'value2', 'value3'] }
         if (Array.isArray(paramValue)) {
             for (j = 0, jj = paramValue.length; j < jj; j++) {
-                encoded = encodeQueryParam({ key: paramKey, value: paramValue[j] });
-                result && encoded && (result += AMPERSAND);
-                result += encoded;
+
+                notFirstParam && (result += AMPERSAND);
+                notFirstParam = true;
+
+                result += encodeQueryParam({ key: paramKey, value: paramValue[j] });
             }
         }
         // { key: 'value' }
         else {
-            encoded = encodeQueryParam({ key: paramKey, value: paramValue });
-            result && encoded && (result += AMPERSAND);
-            result += encoded;
+            notFirstParam && (result += AMPERSAND);
+            notFirstParam = true;
+
+            result += encodeQueryParam({ key: paramKey, value: paramValue });
         }
     }
 
