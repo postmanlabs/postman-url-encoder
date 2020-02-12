@@ -93,6 +93,64 @@ describe('.toNodeUrl', function () {
         expect(toNodeUrl({ host: 'example.com' })).to.eql(defaultUrl);
     });
 
+    describe('with disableEncoding: true', function () {
+        it('should always encode hostname', function () {
+            expect(toNodeUrl('😎.cool', true))
+                .to.include({
+                    host: 'xn--s28h.cool',
+                    hostname: 'xn--s28h.cool',
+                    href: 'http://xn--s28h.cool/'
+                });
+        });
+
+        it('should not encode URL segments', function () {
+            expect(toNodeUrl('r@@t:b:a:r@郵便屋さん.com:399/foo&bar/{baz}?q=("foo")#`hash`', true))
+                .to.eql({
+                    protocol: 'http:',
+                    slashes: true,
+                    auth: 'r@@t:b:a:r',
+                    host: 'xn--48jwgn17gdel797d.com:399',
+                    port: '399',
+                    hostname: 'xn--48jwgn17gdel797d.com',
+                    hash: '#`hash`',
+                    search: '?q=("foo")',
+                    query: 'q=("foo")',
+                    pathname: '/foo&bar/{baz}',
+                    path: '/foo&bar/{baz}?q=("foo")',
+                    href: 'http://r@@t:b:a:r@xn--48jwgn17gdel797d.com:399/foo&bar/{baz}?q=("foo")#`hash`'
+                });
+        });
+
+        // @note tests sdk.url.getQueryString code path
+        it('should handle empty key or empty value', function () {
+            expect(toNodeUrl(new PostmanUrl({
+                host: 'example.com',
+                query: [
+                    { key: '("foo")' },
+                    { value: '"bar"' },
+                    { key: '', value: '' },
+                    { key: 'BAZ', value: '' },
+                    { key: '', value: '{qux}' }
+                ]
+            }), true)).to.include({
+                query: '("foo")&="bar"&=&BAZ=&={qux}',
+                search: '?("foo")&="bar"&=&BAZ=&={qux}'
+            });
+
+            expect(toNodeUrl('http://localhost?', true)).to.include({
+                query: '',
+                search: '?',
+                href: 'http://localhost/?'
+            });
+
+            expect(toNodeUrl(new PostmanUrl('localhost?&'), true)).to.include({
+                query: '&',
+                search: '?&',
+                href: 'http://localhost/?&'
+            });
+        });
+    });
+
     describe('PROPERTY', function () {
         describe('.protocol', function () {
             it('should defaults to http:', function () {
@@ -158,7 +216,20 @@ describe('.toNodeUrl', function () {
                     .to.have.property('auth', '%22user%22:p%C3%A2$$');
             });
 
+            it('should handle multiple : and @ in auth', function () {
+                expect(toNodeUrl('http://us@r:p@ssword@localhost'))
+                    .to.have.property('auth', 'us%40r:p%40ssword');
+
+                expect(toNodeUrl('http://user:p:a:s:s@localhost'))
+                    .to.have.property('auth', 'user:p%3Aa%3As%3As');
+            });
+
             it('should ignore the empty and non-string username', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    auth: {}
+                }))).to.have.property('auth', null);
+
                 expect(toNodeUrl(new PostmanUrl({
                     host: 'example.com',
                     auth: {
@@ -194,6 +265,34 @@ describe('.toNodeUrl', function () {
                 }))).to.have.property('auth', 'root%40domain.com');
 
                 expect(toNodeUrl('http://root@example.com')).to.have.property('auth', 'root');
+            });
+
+            it('should retain @ in auth without user and password', function () {
+                expect(toNodeUrl('http://@localhost')).to.include({
+                    auth: '',
+                    href: 'http://@localhost/'
+                });
+
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    auth: {
+                        user: ''
+                    }
+                }))).to.have.property('auth', '');
+            });
+
+            it('should retain : in auth with empty user and password', function () {
+                expect(toNodeUrl('http://:@localhost')).to.include({
+                    auth: ':',
+                    href: 'http://:@localhost/'
+                });
+
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    auth: {
+                        password: ''
+                    }
+                }))).to.have.property('auth', ':');
             });
         });
 
@@ -264,7 +363,7 @@ describe('.toNodeUrl', function () {
             it('should handle invalid hostname', function () {
                 expect(toNodeUrl('xn:')).to.include({
                     host: 'xn:',
-                    hostname: 'xn:'
+                    hostname: 'xn'
                 });
 
                 expect(toNodeUrl('xn--iñvalid.com')).to.include({
@@ -303,6 +402,20 @@ describe('.toNodeUrl', function () {
                     port: 399
                 }))).to.have.property('port', '399');
             });
+
+            it('should accept port object which implements toString', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    port: new Number(8081) // eslint-disable-line no-new-wrappers
+                }))).to.have.property('port', '8081');
+            });
+
+            it('should retain : in empty port', function () {
+                expect(toNodeUrl('http://localhost:')).to.include({
+                    port: '',
+                    href: 'http://localhost:/'
+                });
+            });
         });
 
         describe('.hash', function () {
@@ -328,6 +441,13 @@ describe('.toNodeUrl', function () {
 
             it('should percent-encode SPACE, ("), (<), (>), and (`)', function () {
                 expect(toNodeUrl('0# "<>`')).to.have.property('hash', '#%20%22%3C%3E%60');
+            });
+
+            it('should retain # in empty hash', function () {
+                expect(toNodeUrl('http://localhost#')).to.include({
+                    hash: '#',
+                    href: 'http://localhost/#'
+                });
             });
         });
 
@@ -392,9 +512,53 @@ describe('.toNodeUrl', function () {
                     search: '?q1=v1%20%09%0D%0A%0B%0C'
                 });
             });
+
+            it('should handle empty key or empty value', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    query: [
+                        { key: 'foo' },
+                        { value: 'Bar' },
+                        { key: '', value: '' },
+                        { key: 'BAZ', value: '' },
+                        { key: '', value: 'QuX' }
+                    ]
+                }))).to.include({
+                    query: 'foo&=Bar&=&BAZ=&=QuX',
+                    search: '?foo&=Bar&=&BAZ=&=QuX'
+                });
+            });
+
+            it('should not include disabled params', function () {
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    query: [
+                        { key: 'foo', value: 'bar', disabled: true }
+                    ]
+                }))).to.include({
+                    query: null,
+                    search: null,
+                    href: 'http://example.com/'
+                });
+            });
+
+            it('should retain ? in empty query param', function () {
+                expect(toNodeUrl('http://localhost?')).to.include({
+                    query: '',
+                    search: '?',
+                    href: 'http://localhost/?'
+                });
+
+                expect(toNodeUrl(new PostmanUrl('localhost?&'))).to.include({
+                    query: '&',
+                    search: '?&',
+                    href: 'http://localhost/?&'
+                });
+            });
         });
 
         describe('.path and pathname', function () {
+            // @note this is similar to Node.js (new URL) API
             it('should be `/` if path is absent', function () {
                 expect(toNodeUrl(new PostmanUrl({
                     host: 'example.com'
