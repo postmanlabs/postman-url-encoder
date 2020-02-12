@@ -1,5 +1,6 @@
 master:
   fixed bugs:
+   - GH-10 Handle query parameters with empty key or value
     - >-
       GH-9 Fixed a bug where query params without value were changed to
       params with empty value while encoding single param
