@@ -27,7 +27,7 @@
     "test-benchmark": "node npm/test-benchmark.js"
   },
   "dependencies": {
-    "postman-collection": "^3.5.5",
+    "postman-collection": "3.6.0-beta.2",
     "punycode": "^2.1.1"
   },
   "devDependencies": {

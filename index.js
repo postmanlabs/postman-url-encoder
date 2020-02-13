@@ -34,7 +34,6 @@ const sdk = require('postman-collection'),
 
     QUERY_SEPARATOR = '?',
     SEARCH_SEPARATOR = '#',
-    PROTOCOL_SEPARATOR = '://',
     AUTH_CREDENTIALS_SEPARATOR = '@',
 
     /**
@@ -125,23 +124,30 @@ function encodeQueryString (query) {
  * }))
  *
  * @param {PostmanUrl|String} url
+ * @param {Boolean} disableEncoding
  * @returns {Url}
  */
-function toNodeUrl (url) {
+function toNodeUrl (url, disableEncoding) {
     var nodeUrl = {
-        protocol: null,
-        slashes: null,
-        auth: null,
-        host: null,
-        port: null,
-        hostname: null,
-        hash: null,
-        search: null,
-        query: null,
-        pathname: null,
-        path: null,
-        href: E
-    };
+            protocol: null,
+            slashes: null,
+            auth: null,
+            host: null,
+            port: null,
+            hostname: null,
+            hash: null,
+            search: null,
+            query: null,
+            pathname: null,
+            path: null,
+            href: E
+        },
+        port,
+        hostname,
+        pathname,
+        authUser,
+        authPassword,
+        queryParams;
 
     // convert URL string to PostmanUrl
     if (typeof url === STRING) {
@@ -153,10 +159,37 @@ function toNodeUrl (url) {
         return nodeUrl;
     }
 
+    // @note getPath() always adds a leading '/', similar to Node.js API
+    pathname = url.getPath();
+    hostname = url.getHost().toLowerCase();
+
+    if (url.query && url.query.count()) {
+        queryParams = disableEncoding ? url.getQueryString({ ignoreDisabled: true }) :
+            encoder.encodeQueryParams(url.query.all());
+
+        // either all the params are disabled or a single param is like { key: '' } (http://localhost?)
+        // in that case, query separator ? must be included in the raw URL.
+        // @todo Add helper in SDK to handle this
+        if (queryParams === E) {
+            // check if there's any enabled param, if so, set queryString to empty string
+            // otherwise (all disabled), it will be set as undefined
+            queryParams = url.query.find(function (param) { return !(param && param.disabled); }) && E;
+        }
+    }
+
+    if (url.auth) {
+        authUser = url.auth.user;
+        authPassword = url.auth.password;
+    }
+
+    // @todo Add helper in SDK to normalize port
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    if (!(url.port == null) && typeof url.port.toString === FUNCTION) {
+        port = url.port.toString();
+    }
+
     // #protocol
-    nodeUrl.protocol = (typeof url.protocol === STRING) ?
-        url.protocol.replace(PROTOCOL_SEPARATOR, E).toLowerCase() :
-        DEFAULT_PROTOCOL;
+    nodeUrl.protocol = (typeof url.protocol === STRING) ? url.protocol.toLowerCase() : DEFAULT_PROTOCOL;
     nodeUrl.protocol += COLON;
 
     // #slashes
@@ -167,45 +200,47 @@ function toNodeUrl (url) {
 
     // #auth
     if (url.auth) {
-        if (typeof url.auth.user === STRING) {
-            nodeUrl.auth = encoder.encodeUserInfo(url.auth.user);
-        }
-        if (typeof url.auth.password === STRING) {
-            !nodeUrl.auth && (nodeUrl.auth = E);
-            nodeUrl.auth += COLON + encoder.encodeUserInfo(url.auth.password);
+        if (typeof authUser === STRING) {
+            nodeUrl.auth = disableEncoding ? authUser : encoder.encodeUserInfo(authUser);
         }
 
-        // #href = protocol://user:password@
-        nodeUrl.auth && (nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR);
+        if (typeof authPassword === STRING) {
+            !nodeUrl.auth && (nodeUrl.auth = E);
+            nodeUrl.auth += COLON + (disableEncoding ? authPassword : encoder.encodeUserInfo(authPassword));
+        }
+
+        if (typeof nodeUrl.auth === STRING) {
+            // #href = protocol://user:password@
+            nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
+        }
     }
 
     // #host, #hostname
-    nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
+    nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(hostname); // @note always encode hostname
 
     // #href = protocol://user:password@host.name
     nodeUrl.href += nodeUrl.hostname;
 
-    // @todo Add helper in SDK to normalize port
-    if (typeof (url.port && url.port.toString) === FUNCTION) {
-        // #port
-        nodeUrl.port = url.port.toString();
+    // #port
+    if (typeof port === STRING) {
+        nodeUrl.port = port;
 
         // #host = (#hostname):(#port)
-        nodeUrl.host = nodeUrl.hostname + COLON + nodeUrl.port;
+        nodeUrl.host = nodeUrl.hostname + COLON + port;
 
         // #href = protocol://user:password@host.name:port
-        nodeUrl.href += COLON + nodeUrl.port;
+        nodeUrl.href += COLON + port;
     }
 
     // #path, #pathname
-    nodeUrl.path = nodeUrl.pathname = encoder.encodePath(url.getPath());
+    nodeUrl.path = nodeUrl.pathname = disableEncoding ? pathname : encoder.encodePath(pathname);
 
     // #href = protocol://user:password@host.name:port/p/a/t/h
     nodeUrl.href += nodeUrl.pathname;
 
-    if (url.query.count()) {
+    if (typeof queryParams === STRING) {
         // #query
-        nodeUrl.query = encoder.encodeQueryParams(url.query.all());
+        nodeUrl.query = queryParams;
 
         // #search
         nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
@@ -217,9 +252,9 @@ function toNodeUrl (url) {
         nodeUrl.href += nodeUrl.search;
     }
 
-    if (url.hash) {
+    if (typeof url.hash === STRING) {
         // #hash
-        nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeFragment(url.hash);
+        nodeUrl.hash = SEARCH_SEPARATOR + (disableEncoding ? url.hash : encoder.encodeFragment(url.hash));
 
         // #href = protocol://user:password@host.name:port/p/a/t/h?q=query#hash
         nodeUrl.href += nodeUrl.hash;
