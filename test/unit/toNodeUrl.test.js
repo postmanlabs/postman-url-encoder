@@ -1,6 +1,7 @@
 const fs = require('fs'),
     path = require('path'),
     expect = require('chai').expect,
+    NodeUrl = require('url'),
     PostmanUrl = require('postman-collection').Url,
     parseCsv = require('@postman/csv-parse/lib/sync'),
 
@@ -64,6 +65,27 @@ describe('.toNodeUrl', function () {
             var postmanUrl = new PostmanUrl(testcase.url);
 
             expect(toNodeUrl(testcase.url), testcase.description).to.eql(toNodeUrl(postmanUrl));
+        });
+    });
+
+    it('should return same result as Node.js url.parse', function () {
+        [
+            'http://localhost',
+            'https://localhost/',
+            'https://localhost?',
+            'https://localhost?&',
+            'https://localhost#',
+            'https://localhost/p/a/t/h',
+            'https://localhost/p/a/t/h?q=a&&b??c#123#321',
+            'http://郵便屋さん.com',
+            'http://user:password@example.com:8080/p/a/t/h?q1=v1&q2=v2#hash',
+            'HTTP://example.com',
+            'http://xn--48jwgn17gdel797d.com',
+            'http://xn--iñvalid.com',
+            'http://192.168.0.1:8080',
+            'http://192.168.0.1'
+        ].forEach(function (url) {
+            expect(NodeUrl.parse(url), url).to.deep.include(toNodeUrl(url));
         });
     });
 
