@@ -1,6 +1,7 @@
 master:
-  fixed bugs:
+  new features:
     - GH-11 Added an option to disable encoding on `toNodeUrl()`
+  fixed bugs:
     - GH-10 Handle query parameters with empty key or value
     - >-
       GH-9 Fixed a bug where query params without value were changed to
