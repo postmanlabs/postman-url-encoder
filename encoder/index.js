@@ -82,12 +82,23 @@ const url = require('url'),
      * @param {String} domain domain name
      * @returns {String} punycode encoded domain name
      */
-    domainToASCII = typeof url.domainToASCII === 'function' ?
-        // use faster internal method
-        url.domainToASCII :
+    domainToASCII = (function () {
+        var domainToASCII = url.domainToASCII;
+
+        // @note In Electron v3.1.8, the Node.js native url.domainToASCII
+        // doesn't work as expected. ¯\_(ツ)_/¯
+        // so, check if it convert's '😎' to 'xn--s28h' or not.
+        // @todo Remove this hack on Electron >= 4
+        /* istanbul ignore next */
+        if (typeof domainToASCII === 'function' && domainToASCII('😎') === 'xn--s28h') {
+            // use faster native method
+            return domainToASCII;
+        }
+
         // else, lazy load `punycode` dependency
         /* istanbul ignore next */
-        require('punycode').toASCII;
+        return require('punycode').toASCII;
+    }());
 
 /**
  * Returns the Punycode ASCII serialization of the domain.

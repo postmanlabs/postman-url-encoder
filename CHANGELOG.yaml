@@ -2,6 +2,9 @@ master:
   new features:
     - GH-11 Added an option to disable encoding on `toNodeUrl()`
   fixed bugs:
+    - >-
+      GH-12 Fixed a bug where Node.js native `url.domainToASCII` was not
+      working as expected in Electron v3
     - GH-10 Handle query parameters with empty key or value
     - >-
       GH-9 Fixed a bug where query params without value were changed to
