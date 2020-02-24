@@ -275,6 +275,7 @@ function toNodeUrl (url, disableEncoding) {
  * getUrlTill(toNodeUrl(url), 'host')
  * // returns 'http://postman.com'
  *
+ * @private
  * @param {Object} url base URL
  * @param {String} urlPart one of ['protocol', 'auth', 'host', 'pathname', 'query']
  */
@@ -408,7 +409,7 @@ function resolveNodeUrl (base, relative) {
     // #5.2 protocol separator is :\\
     if ((protocolIndex = relative.indexOf(':\\\\')) !== -1 && protocolIndex < pathEndIndex) {
         // change protocol separator from :\\ to :// and return
-        return relative.replace(DOUBLE_BACK_SLASH, DOUBLE_BACK_SLASH);
+        return relative.replace(DOUBLE_BACK_SLASH, DOUBLE_SLASH);
     }
 
     /* #6 base-relative URL with path */

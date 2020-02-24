@@ -9,7 +9,7 @@ describe('url-resolve', function () {
             var base = encoder.toNodeUrl(test.base),
                 resolved = encoder.resolveNodeUrl(base, test.relative);
 
-            expect(resolved, base.href + ' : ' + test.relative).to.eql(test.resolved);
+            expect(resolved).to.eql(test.resolved);
         });
     });
 
@@ -19,5 +19,19 @@ describe('url-resolve', function () {
             resolved = 'http://postman.com/path/foo/bar';
 
         expect(encoder.resolveNodeUrl(base, relative)).to.eql(resolved);
+    });
+
+    it('should return base URL if relative URL is not string', function () {
+        var base = 'http://postman.com/path/alpha',
+            relative = {};
+
+        expect(encoder.resolveNodeUrl(base, relative)).to.eql(base);
+    });
+
+    it('should return relative URL if base URL is not valid URL object', function () {
+        var base = {},
+            relative = 'http://postman.com';
+
+        expect(encoder.resolveNodeUrl(base, relative)).to.eql(relative);
     });
 });

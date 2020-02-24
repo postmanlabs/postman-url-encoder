@@ -79,6 +79,11 @@ module.exports = [
     },
     {
         base: 'http://postman.com',
+        relative: 'http:\\\\postman-echo.com',
+        resolved: 'http://postman-echo.com'
+    },
+    {
+        base: 'http://postman.com',
         relative: 'http://postman-echo.com:8080',
         resolved: 'http://postman-echo.com:8080'
     },
@@ -302,6 +307,11 @@ module.exports = [
         base: 'http://postman.com/path/alpha',
         relative: 'foo/bar#hash_2',
         resolved: 'http://postman.com/path/foo/bar#hash_2'
+    },
+    {
+        base: 'http://postman.com/path/alpha#hash_1',
+        relative: '#hash_2',
+        resolved: 'http://postman.com/path/alpha#hash_2'
     },
     {
         base: 'http://postman.com/path/alpha',
