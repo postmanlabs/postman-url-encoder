@@ -110,7 +110,7 @@ module.exports = [
     {
         base: 'http://postman.com',
         relative: 'http://postman-echo.com\\path\\foo\\bar',
-        resolved: 'http://postman-echo.com/path/foo/bar'
+        resolved: 'http://postman-echo.com\\path\\foo\\bar'
     },
     {
         base: 'http://postman.com',
@@ -152,12 +152,12 @@ module.exports = [
     {
         base: 'http://postman.com/foo',
         relative: '//postman-echo.com\\path/bar',
-        resolved: 'http://postman-echo.com/path/bar'
+        resolved: 'http://postman-echo.com\\path/bar'
     },
     {
         base: 'http://postman.com/foo',
         relative: '\\\\postman-echo.com\\path/bar',
-        resolved: 'http://postman-echo.com/path/bar'
+        resolved: 'http://postman-echo.com\\path/bar'
     },
     {
         base: 'http://postman.com/foo',
@@ -200,6 +200,11 @@ module.exports = [
         base: 'http://postman.com/path/alpha',
         relative: '/foo/bar',
         resolved: 'http://postman.com/foo/bar'
+    },
+    {
+        base: 'http://',
+        relative: '/foo/bar',
+        resolved: 'http:///foo/bar'
     },
     {
         base: 'http://[::1]/path/alpha',
@@ -301,63 +306,11 @@ module.exports = [
     {
         base: 'http://postman.com/path/alpha',
         relative: '?q2=v2',
-        resolved: 'http://postman.com/path/?q2=v2'
+        resolved: 'http://postman.com/path/alpha?q2=v2'
     },
     {
         base: 'http://usr:pswd@postman.com/path/alpha',
         relative: 'foo/bar#hash_2',
         resolved: 'http://usr:pswd@postman.com/path/foo/bar#hash_2'
-    },
-
-    // path traversal
-    {
-        base: 'http://postman.com',
-        relative: 'https://postman-echo.com/p/q/./../r',
-        resolved: 'https://postman-echo.com/p/r'
-    },
-    {
-        base: 'http://postman.com',
-        relative: 'https://postman-echo.com/p/q/./../../../../r',
-        resolved: 'https://postman-echo.com/r'
-    },
-    {
-        base: 'http://postman.com',
-        relative: 'https://postman-echo.com/p/q/./../../../..',
-        resolved: 'https://postman-echo.com/'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: '//postman-echo.com/p/q/./../r',
-        resolved: 'http://postman-echo.com/p/q/./../r'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: '//postman-echo.com/p/q/./../r?q=v#hash',
-        resolved: 'http://postman-echo.com/p/q/./../r?q=v#hash'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: '/p/q/./../r?q=v#hash',
-        resolved: 'http://postman.com/p/r?q=v#hash'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: '/p/q/./../../../../r?q=v#hash',
-        resolved: 'http://postman.com/r?q=v#hash'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: 'p/q/./../r?q=v#hash',
-        resolved: 'http://postman.com/a/b/p/r?q=v#hash'
-    },
-    {
-        base: 'http://postman.com/a/b/c',
-        relative: 'p/q/./../../../../../r?q=v#hash',
-        resolved: 'http://postman.com/r?q=v#hash'
-    },
-    {
-        base: 'http://postman.com/a/b/c/',
-        relative: '../r?q=v#hash',
-        resolved: 'http://postman.com/a/b/r?q=v#hash'
     }
 ];
