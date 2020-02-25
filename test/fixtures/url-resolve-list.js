@@ -1,4 +1,11 @@
 module.exports = [
+    // invalid base URL
+    {
+        base: null,
+        relative: '/foo',
+        resolved: '/foo'
+    },
+
     // empty relative URL
     {
         base: 'http://postman-echo.com',

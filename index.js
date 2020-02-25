@@ -277,7 +277,7 @@ function toNodeUrl (url, disableEncoding) {
  *
  * @private
  * @param {Object} url base URL
- * @param {String} urlPart one of ['protocol', 'auth', 'host', 'pathname', 'query']
+ * @param {String} [urlPart='query'] one of ['host', 'pathname', 'query']
  */
 function getUrlTill (url, urlPart) {
     var result = '';
@@ -286,29 +286,20 @@ function getUrlTill (url, urlPart) {
         result += url.protocol + DOUBLE_SLASH;
     }
 
-    if (urlPart === 'protocol') { return result; }
-
     if (url.auth) {
         result += url.auth + AUTH_CREDENTIALS_SEPARATOR;
     }
-
-    if (urlPart === 'auth') { return result; }
 
     result += url.host || E;
 
     if (urlPart === 'host') { return result; }
 
-    result += url.pathname || E;
+    result += url.pathname;
 
     if (urlPart === 'pathname') { return result; }
 
-    result += url.search || E;
-
-    if (urlPart === 'query') { return result; }
-
-    result += url.hash || E;
-
-    return result;
+    // urlPart must be query at this point
+    return result + (url.search || E);
 }
 
 /**
