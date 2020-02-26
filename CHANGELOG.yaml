@@ -1,6 +1,9 @@
 master:
   new features:
     - GH-11 Added an option to disable encoding on `toNodeUrl()`
+    - >-
+      GH-13 Added `resolveNodeUrl()` method to resolve target URL relative
+      to a base URL
   fixed bugs:
     - >-
       GH-12 Fixed a bug where Node.js native `url.domainToASCII` was not
