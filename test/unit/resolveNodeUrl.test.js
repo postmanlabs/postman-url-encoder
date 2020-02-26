@@ -21,6 +21,10 @@ describe('url-resolve', function () {
         expect(encoder.resolveNodeUrl(base, relative)).to.eql(resolved);
     });
 
+    it('should return relative URL if base URL is undefined', function () {
+        expect(encoder.resolveNodeUrl(undefined, '/foo')).to.eql('/foo');
+    });
+
     it('should return base URL if relative URL is not string', function () {
         var base = 'http://postman.com/path/alpha',
             relative = {};

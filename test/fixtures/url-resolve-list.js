@@ -5,6 +5,11 @@ module.exports = [
         relative: '/foo',
         resolved: '/foo'
     },
+    {
+        base: undefined,
+        relative: '/foo',
+        resolved: '/foo'
+    },
 
     // empty relative URL
     {
@@ -74,11 +79,6 @@ module.exports = [
     },
 
     // relative URL with protocol
-    {
-        base: 'http://postman.com',
-        relative: 'http://',
-        resolved: 'http://'
-    },
     {
         base: 'http://postman.com',
         relative: 'http://postman-echo.com',
@@ -329,5 +329,25 @@ module.exports = [
         base: 'http://usr:pswd@postman.com/path/alpha',
         relative: 'foo/bar#hash_2',
         resolved: 'http://usr:pswd@postman.com/path/foo/bar#hash_2'
+    },
+    {
+        base: 'http://postman.com/foo/bar',
+        relative: 'baz/://?x=y',
+        resolved: 'http://postman.com/foo/baz/://?x=y'
+    },
+    {
+        base: 'http://postman.com/',
+        relative: 'foo?q=://bar',
+        resolved: 'http://postman.com/foo?q=://bar'
+    },
+    {
+        base: 'http://postman.com',
+        relative: 'http://',
+        resolved: 'http://postman.com/http://'
+    },
+    {
+        base: 'http://postman.com',
+        relative: 'http:\\\\',
+        resolved: 'http://postman.com/http:\\\\'
     }
 ];
