@@ -335,7 +335,7 @@ function resolveNodeUrl (base, relative) {
         relative_0,
         relative_01,
         basePathname,
-        requiredProps = ['protocol', 'auth', 'host', 'pathname', 'search', 'hash'];
+        requiredProps = ['protocol', 'auth', 'host', 'pathname', 'search', 'href'];
 
     // bail out if base is not like Node url object
     for (i = 0, ii = requiredProps.length; i < ii; i++) {
