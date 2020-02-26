@@ -40,8 +40,7 @@ const sdk = require('postman-collection'),
     AUTH_CREDENTIALS_SEPARATOR = '@',
 
     // @note this regular expression is referred from Node.js URL parser
-    FWD_SLASH_PROTOCOL_RE = /^[a-z0-9.+-]+:\/\/./i,
-    BACK_SLASH_PROTOCOL_RE = /^[a-z0-9.+-]+:\\\\./i,
+    PROTOCOL_RE = /^[a-z0-9.+-]+:(?:\/\/|\\\\)./i,
 
     /**
      * Protocols that always contain a // bit.
@@ -372,19 +371,15 @@ function resolveNodeUrl (base, relative) {
         return baseHref.slice(0, index);
     }
 
-    // #2 protocol relative, starts with //
-    if (relative_01 === DOUBLE_SLASH) {
+    // #2 protocol relative, starts with // or \\
+    // @note \\ is not converted to //
+    if (relative_01 === DOUBLE_SLASH || relative_01 === DOUBLE_BACK_SLASH) {
         return base.protocol + relative;
     }
 
-    // #2 protocol relative, starts with \\
-    if (relative_01 === DOUBLE_BACK_SLASH) {
-        return base.protocol + relative.replace(DOUBLE_BACK_SLASH, DOUBLE_SLASH);
-    }
-
     // #3 path relative, starts with / or \
+    // @note \(s) are not converted to /
     if (relative_0 === PATH_SEPARATOR || relative_0 === BACK_SLASH) {
-        // @note here \(s) in path are not converted to /
         return getUrlTill(base, 'host') + relative;
     }
 
@@ -398,15 +393,10 @@ function resolveNodeUrl (base, relative) {
         return getUrlTill(base, 'pathname') + relative;
     }
 
-    // #5 absolute URL, starts with ://
-    if (FWD_SLASH_PROTOCOL_RE.test(relative)) {
+    // #5 absolute URL, starts with :// or :\\
+    // @note :\\ is not converted to ://
+    if (PROTOCOL_RE.test(relative)) {
         return relative;
-    }
-
-    // #5 absolute URL, starts with :\\
-    if (BACK_SLASH_PROTOCOL_RE.test(relative)) {
-        // change protocol separator from :\\ to :// and return
-        return relative.replace(DOUBLE_BACK_SLASH, DOUBLE_SLASH);
     }
 
     // #6 free from path, with or without query and hash

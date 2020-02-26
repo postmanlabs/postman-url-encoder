@@ -87,7 +87,7 @@ module.exports = [
     {
         base: 'http://postman.com',
         relative: 'http:\\\\postman-echo.com',
-        resolved: 'http://postman-echo.com'
+        resolved: 'http:\\\\postman-echo.com'
     },
     {
         base: 'http://postman.com',
@@ -157,6 +157,11 @@ module.exports = [
         resolved: 'http://postman-echo.com'
     },
     {
+        base: 'foo://postman.com',
+        relative: '//postman-echo.com',
+        resolved: 'foo://postman-echo.com'
+    },
+    {
         base: 'http://postman.com/foo',
         relative: '//postman-echo.com/path/bar',
         resolved: 'http://postman-echo.com/path/bar'
@@ -169,7 +174,7 @@ module.exports = [
     {
         base: 'http://postman.com/foo',
         relative: '\\\\postman-echo.com\\path/bar',
-        resolved: 'http://postman-echo.com\\path/bar'
+        resolved: 'http:\\\\postman-echo.com\\path/bar'
     },
     {
         base: 'http://postman.com/foo',
@@ -276,6 +281,11 @@ module.exports = [
         resolved: 'http://postman.com/path/foo/bar'
     },
     {
+        base: 'http://postman.com/path/alpha/',
+        relative: 'foo/bar',
+        resolved: 'http://postman.com/path/alpha/foo/bar'
+    },
+    {
         base: 'http://[::1]/path/alpha',
         relative: 'foo/bar',
         resolved: 'http://[::1]/path/foo/bar'
@@ -347,7 +357,17 @@ module.exports = [
     },
     {
         base: 'http://postman.com',
+        relative: 'foo:/',
+        resolved: 'http://postman.com/foo:/'
+    },
+    {
+        base: 'http://postman.com',
         relative: 'http:\\\\',
         resolved: 'http://postman.com/http:\\\\'
+    },
+    {
+        base: 'http://postman.com',
+        relative: 'foo:\\',
+        resolved: 'http://postman.com/foo:\\'
     }
 ];
