@@ -2,7 +2,7 @@ master:
   new features:
     - GH-11 Added an option to disable encoding on `toNodeUrl()`
     - >-
-      GH-13 Added `resolveNodeUrl()` function to resolve target URLs relative
+      GH-13 Added `resolveNodeUrl()` method to resolve target URL relative
       to a base URL
   fixed bugs:
     - >-
