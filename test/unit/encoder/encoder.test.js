@@ -277,8 +277,24 @@ describe('encoder', function () {
             expect(encoder.encodeQueryParam({ value: 'bar' })).to.eql('=bar');
         });
 
+        it('should handle param object with null key', function () {
+            expect(encoder.encodeQueryParam({ key: null, value: 'bar' })).to.eql('=bar');
+        });
+
         it('should handle param object without value', function () {
-            expect(encoder.encodeQueryParam({ key: 'foo' })).to.eql('foo=');
+            expect(encoder.encodeQueryParam({ key: 'foo' })).to.eql('foo');
+        });
+
+        it('should handle param object with null value', function () {
+            expect(encoder.encodeQueryParam({ key: 'foo', value: null })).to.eql('foo');
+        });
+
+        it('should handle param object with empty value', function () {
+            expect(encoder.encodeQueryParam({ key: 'foo', value: '' })).to.eql('foo=');
+        });
+
+        it('should handle param object with empty key and empty value', function () {
+            expect(encoder.encodeQueryParam({ key: '', value: '' })).to.eql('=');
         });
 
         it('should return empty string for invalid param object', function () {
@@ -287,7 +303,7 @@ describe('encoder', function () {
         });
 
         it('should ignore non-string value in param object', function () {
-            expect(encoder.encodeQueryParam({ key: 'q', value: 123 })).to.eql('q=');
+            expect(encoder.encodeQueryParam({ key: 'q', value: 123 })).to.eql('q');
             expect(encoder.encodeQueryParam({ value: true })).to.eql('');
         });
 
@@ -330,6 +346,24 @@ describe('encoder', function () {
             ])).to.eql('%E2%98%9D%F0%9F%8F%BB=v1&%E2%9C%8C%F0%9F%8F%BB=v2');
         });
 
+        it('should handle params with empty key or value', function () {
+            expect(encoder.encodeQueryParams([
+                { key: 'get', value: null },
+                { key: '', value: 'bar' },
+                { key: '', value: '' },
+                { key: 'baz', value: '' },
+                { key: null, value: null },
+                { key: '', value: null }
+            ])).to.eql('get&=bar&=&baz=&&');
+
+            expect(encoder.encodeQueryParams({ '': null })).to.eql('');
+            expect(encoder.encodeQueryParams({ '': '' })).to.eql('=');
+            expect(encoder.encodeQueryParams({ '': [null, null] })).to.eql('&');
+            expect(encoder.encodeQueryParams({ '': ['', null] })).to.eql('=&');
+            expect(encoder.encodeQueryParams({ '': [null, ''] })).to.eql('&=');
+            expect(encoder.encodeQueryParams({ '': ['', ''] })).to.eql('=&=');
+        });
+
         it('should handle multi-valued param object', function () {
             expect(encoder.encodeQueryParams({
                 q1: ['𝌆+й', '你-ス'],
@@ -353,7 +387,6 @@ describe('encoder', function () {
             expect(encoder.encodeQueryParams(1234)).to.equal('');
             expect(encoder.encodeQueryParams('foo=bar')).to.equal('');
             expect(encoder.encodeQueryParams(Function)).to.equal('');
-            expect(encoder.encodeQueryParams([Infinity, -Infinity])).to.equal('');
         });
     });
 

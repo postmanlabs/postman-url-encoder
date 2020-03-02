@@ -82,12 +82,23 @@ const url = require('url'),
      * @param {String} domain domain name
      * @returns {String} punycode encoded domain name
      */
-    domainToASCII = typeof url.domainToASCII === 'function' ?
-        // use faster internal method
-        url.domainToASCII :
+    domainToASCII = (function () {
+        var domainToASCII = url.domainToASCII;
+
+        // @note In Electron v3.1.8, the Node.js native url.domainToASCII
+        // doesn't work as expected. ¯\_(ツ)_/¯
+        // so, check if it convert's '😎' to 'xn--s28h' or not.
+        // @todo Remove this hack on Electron >= 4
+        /* istanbul ignore next */
+        if (typeof domainToASCII === 'function' && domainToASCII('😎') === 'xn--s28h') {
+            // use faster native method
+            return domainToASCII;
+        }
+
         // else, lazy load `punycode` dependency
         /* istanbul ignore next */
-        require('punycode').toASCII;
+        return require('punycode').toASCII;
+    }());
 
 /**
  * Returns the Punycode ASCII serialization of the domain.
@@ -207,21 +218,21 @@ function encodeQueryParam (param) {
     }
 
     var key = param.key,
-        value = param.value;
+        value = param.value,
+        result;
 
-    if (typeof key !== STRING) {
-        key = E;
+    if (typeof key === STRING) {
+        result = _percentEncode(key, QUERY_ENCODE_SET);
+    }
+    else {
+        result = E;
     }
 
-    if (typeof value !== STRING) {
-        value = E;
+    if (typeof value === STRING) {
+        result += EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
     }
 
-    if (key === E && value === E) {
-        return E;
-    }
-
-    return _percentEncode(key, QUERY_ENCODE_SET) + EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
+    return result;
 }
 
 /**
@@ -242,11 +253,11 @@ function encodeQueryParams (params) {
         j,
         ii,
         jj,
-        encoded,
         paramKey,
         paramKeys,
         paramValue,
-        result = E;
+        result = E,
+        notFirstParam = false;
 
     if (!(params && typeof params === OBJECT)) {
         return E;
@@ -260,10 +271,11 @@ function encodeQueryParams (params) {
                 continue;
             }
 
-            encoded = encodeQueryParam(params[i]);
+            // don't add '&' for the very first enabled param
+            notFirstParam && (result += AMPERSAND);
+            notFirstParam = true;
 
-            result && encoded && (result += AMPERSAND);
-            result += encoded;
+            result += encodeQueryParam(params[i]);
         }
 
         return result;
@@ -279,16 +291,19 @@ function encodeQueryParams (params) {
         // { key: ['value1', 'value2', 'value3'] }
         if (Array.isArray(paramValue)) {
             for (j = 0, jj = paramValue.length; j < jj; j++) {
-                encoded = encodeQueryParam({ key: paramKey, value: paramValue[j] });
-                result && encoded && (result += AMPERSAND);
-                result += encoded;
+
+                notFirstParam && (result += AMPERSAND);
+                notFirstParam = true;
+
+                result += encodeQueryParam({ key: paramKey, value: paramValue[j] });
             }
         }
         // { key: 'value' }
         else {
-            encoded = encodeQueryParam({ key: paramKey, value: paramValue });
-            result && encoded && (result += AMPERSAND);
-            result += encoded;
+            notFirstParam && (result += AMPERSAND);
+            notFirstParam = true;
+
+            result += encodeQueryParam({ key: paramKey, value: paramValue });
         }
     }
 

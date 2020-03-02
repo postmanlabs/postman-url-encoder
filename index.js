@@ -26,16 +26,21 @@ const sdk = require('postman-collection'),
 
     E = '',
     COLON = ':',
+    BACK_SLASH = '\\',
+    DOUBLE_SLASH = '//',
+    DOUBLE_BACK_SLASH = '\\\\',
     STRING = 'string',
     OBJECT = 'object',
     FUNCTION = 'function',
-    DOUBLE_SLASH = '//',
     DEFAULT_PROTOCOL = 'http',
 
+    PATH_SEPARATOR = '/',
     QUERY_SEPARATOR = '?',
     SEARCH_SEPARATOR = '#',
-    PROTOCOL_SEPARATOR = '://',
     AUTH_CREDENTIALS_SEPARATOR = '@',
+
+    // @note this regular expression is referred from Node.js URL parser
+    PROTOCOL_RE = /^[a-z0-9.+-]+:(?:\/\/|\\\\)./i,
 
     /**
      * Protocols that always contain a // bit.
@@ -52,6 +57,42 @@ const sdk = require('postman-collection'),
         'ws:': true,
         'wss:': true
     };
+
+/**
+ * Returns stringified URL from Url object but only includes parts till given
+ * part name.
+ *
+ * @example
+ * var url = 'http://postman.com/foo?q=v#hash';
+ * getUrlTill(toNodeUrl(url), 'host')
+ * // returns 'http://postman.com'
+ *
+ * @private
+ * @param {Object} url base URL
+ * @param {String} [urlPart='query'] one of ['host', 'pathname', 'query']
+ */
+function getUrlTill (url, urlPart) {
+    var result = '';
+
+    if (url.protocol) {
+        result += url.protocol + DOUBLE_SLASH;
+    }
+
+    if (url.auth) {
+        result += url.auth + AUTH_CREDENTIALS_SEPARATOR;
+    }
+
+    result += url.host || E;
+
+    if (urlPart === 'host') { return result; }
+
+    result += url.pathname;
+
+    if (urlPart === 'pathname') { return result; }
+
+    // urlPart must be query at this point
+    return result + (url.search || E);
+}
 
 /**
  * Percent-encode the given string using QUERY_ENCODE_SET.
@@ -125,23 +166,30 @@ function encodeQueryString (query) {
  * }))
  *
  * @param {PostmanUrl|String} url
+ * @param {Boolean} disableEncoding
  * @returns {Url}
  */
-function toNodeUrl (url) {
+function toNodeUrl (url, disableEncoding) {
     var nodeUrl = {
-        protocol: null,
-        slashes: null,
-        auth: null,
-        host: null,
-        port: null,
-        hostname: null,
-        hash: null,
-        search: null,
-        query: null,
-        pathname: null,
-        path: null,
-        href: E
-    };
+            protocol: null,
+            slashes: null,
+            auth: null,
+            host: null,
+            port: null,
+            hostname: null,
+            hash: null,
+            search: null,
+            query: null,
+            pathname: null,
+            path: null,
+            href: E
+        },
+        port,
+        hostname,
+        pathname,
+        authUser,
+        authPassword,
+        queryParams;
 
     // convert URL string to PostmanUrl
     if (typeof url === STRING) {
@@ -153,10 +201,37 @@ function toNodeUrl (url) {
         return nodeUrl;
     }
 
+    // @note getPath() always adds a leading '/', similar to Node.js API
+    pathname = url.getPath();
+    hostname = url.getHost().toLowerCase();
+
+    if (url.query && url.query.count()) {
+        queryParams = disableEncoding ? url.getQueryString({ ignoreDisabled: true }) :
+            encoder.encodeQueryParams(url.query.all());
+
+        // either all the params are disabled or a single param is like { key: '' } (http://localhost?)
+        // in that case, query separator ? must be included in the raw URL.
+        // @todo Add helper in SDK to handle this
+        if (queryParams === E) {
+            // check if there's any enabled param, if so, set queryString to empty string
+            // otherwise (all disabled), it will be set as undefined
+            queryParams = url.query.find(function (param) { return !(param && param.disabled); }) && E;
+        }
+    }
+
+    if (url.auth) {
+        authUser = url.auth.user;
+        authPassword = url.auth.password;
+    }
+
+    // @todo Add helper in SDK to normalize port
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    if (!(url.port == null) && typeof url.port.toString === FUNCTION) {
+        port = url.port.toString();
+    }
+
     // #protocol
-    nodeUrl.protocol = (typeof url.protocol === STRING) ?
-        url.protocol.replace(PROTOCOL_SEPARATOR, E).toLowerCase() :
-        DEFAULT_PROTOCOL;
+    nodeUrl.protocol = (typeof url.protocol === STRING) ? url.protocol.toLowerCase() : DEFAULT_PROTOCOL;
     nodeUrl.protocol += COLON;
 
     // #slashes
@@ -167,45 +242,47 @@ function toNodeUrl (url) {
 
     // #auth
     if (url.auth) {
-        if (typeof url.auth.user === STRING) {
-            nodeUrl.auth = encoder.encodeUserInfo(url.auth.user);
-        }
-        if (typeof url.auth.password === STRING) {
-            !nodeUrl.auth && (nodeUrl.auth = E);
-            nodeUrl.auth += COLON + encoder.encodeUserInfo(url.auth.password);
+        if (typeof authUser === STRING) {
+            nodeUrl.auth = disableEncoding ? authUser : encoder.encodeUserInfo(authUser);
         }
 
-        // #href = protocol://user:password@
-        nodeUrl.auth && (nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR);
+        if (typeof authPassword === STRING) {
+            !nodeUrl.auth && (nodeUrl.auth = E);
+            nodeUrl.auth += COLON + (disableEncoding ? authPassword : encoder.encodeUserInfo(authPassword));
+        }
+
+        if (typeof nodeUrl.auth === STRING) {
+            // #href = protocol://user:password@
+            nodeUrl.href += nodeUrl.auth + AUTH_CREDENTIALS_SEPARATOR;
+        }
     }
 
     // #host, #hostname
-    nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(url.getHost()).toLowerCase();
+    nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(hostname); // @note always encode hostname
 
     // #href = protocol://user:password@host.name
     nodeUrl.href += nodeUrl.hostname;
 
-    // @todo Add helper in SDK to normalize port
-    if (typeof (url.port && url.port.toString) === FUNCTION) {
-        // #port
-        nodeUrl.port = url.port.toString();
+    // #port
+    if (typeof port === STRING) {
+        nodeUrl.port = port;
 
         // #host = (#hostname):(#port)
-        nodeUrl.host = nodeUrl.hostname + COLON + nodeUrl.port;
+        nodeUrl.host = nodeUrl.hostname + COLON + port;
 
         // #href = protocol://user:password@host.name:port
-        nodeUrl.href += COLON + nodeUrl.port;
+        nodeUrl.href += COLON + port;
     }
 
     // #path, #pathname
-    nodeUrl.path = nodeUrl.pathname = encoder.encodePath(url.getPath());
+    nodeUrl.path = nodeUrl.pathname = disableEncoding ? pathname : encoder.encodePath(pathname);
 
     // #href = protocol://user:password@host.name:port/p/a/t/h
     nodeUrl.href += nodeUrl.pathname;
 
-    if (url.query.count()) {
+    if (typeof queryParams === STRING) {
         // #query
-        nodeUrl.query = encoder.encodeQueryParams(url.query.all());
+        nodeUrl.query = queryParams;
 
         // #search
         nodeUrl.search = QUERY_SEPARATOR + nodeUrl.query;
@@ -217,15 +294,116 @@ function toNodeUrl (url) {
         nodeUrl.href += nodeUrl.search;
     }
 
-    if (url.hash) {
+    if (typeof url.hash === STRING) {
         // #hash
-        nodeUrl.hash = SEARCH_SEPARATOR + encoder.encodeFragment(url.hash);
+        nodeUrl.hash = SEARCH_SEPARATOR + (disableEncoding ? url.hash : encoder.encodeFragment(url.hash));
 
         // #href = protocol://user:password@host.name:port/p/a/t/h?q=query#hash
         nodeUrl.href += nodeUrl.hash;
     }
 
     return nodeUrl;
+}
+
+/**
+ * Resolves a relative URL with respect to given base URL.
+ * This is a replacement method for Node's url.resolve() which is compatible
+ * with URL object generated by toNodeUrl().
+ *
+ * @example
+ * // returns 'http://postman.com/baz'
+ * resolveNodeUrl('http://postman.com/foo/bar', '/baz')
+ *
+ * @param {Object|String} base URL string or toNodeUrl() object
+ * @param {String} relative Relative URL to resolve
+ * @returns {String} Resolved URL
+ */
+function resolveNodeUrl (base, relative) {
+    // normalize arguments
+    typeof base === STRING && (base = toNodeUrl(base));
+    typeof relative !== STRING && (relative = E);
+
+    // bail out if base is not an object
+    if (!(base && typeof base === OBJECT)) {
+        return relative;
+    }
+
+    var i,
+        ii,
+        index,
+        baseHref,
+        relative_0,
+        relative_01,
+        basePathname,
+        requiredProps = ['protocol', 'auth', 'host', 'pathname', 'search', 'href'];
+
+    // bail out if base is not like Node url object
+    for (i = 0, ii = requiredProps.length; i < ii; i++) {
+        if (!base.hasOwnProperty(requiredProps[i])) {
+            return relative;
+        }
+    }
+
+    // cache base.href and base.pathname
+    baseHref = base.href;
+    basePathname = base.pathname;
+
+    // cache relative's first two chars
+    relative_0 = relative.slice(0, 1);
+    relative_01 = relative.slice(0, 2);
+
+    // @note relative can be one of
+    // #1 empty string
+    // #2 protocol relative, starts with // or \\
+    // #3 path relative, starts with / or \
+    // #4 just query or hash, starts with ? or #
+    // #5 absolute URL, starts with :// or :\\
+    // #6 free from path, with or without query and hash
+
+    // #1 empty string
+    if (!relative) {
+        // return base as it is if there is no hash
+        if ((index = baseHref.indexOf(SEARCH_SEPARATOR)) === -1) {
+            return baseHref;
+        }
+
+        // else, return base without the hash
+        return baseHref.slice(0, index);
+    }
+
+    // #2 protocol relative, starts with // or \\
+    // @note \\ is not converted to //
+    if (relative_01 === DOUBLE_SLASH || relative_01 === DOUBLE_BACK_SLASH) {
+        return base.protocol + relative;
+    }
+
+    // #3 path relative, starts with / or \
+    // @note \(s) are not converted to /
+    if (relative_0 === PATH_SEPARATOR || relative_0 === BACK_SLASH) {
+        return getUrlTill(base, 'host') + relative;
+    }
+
+    // #4 just hash, starts with #
+    if (relative_0 === SEARCH_SEPARATOR) {
+        return getUrlTill(base, 'query') + relative;
+    }
+
+    // #4 just query, starts with ?
+    if (relative_0 === QUERY_SEPARATOR) {
+        return getUrlTill(base, 'pathname') + relative;
+    }
+
+    // #5 absolute URL, starts with :// or :\\
+    // @note :\\ is not converted to ://
+    if (PROTOCOL_RE.test(relative)) {
+        return relative;
+    }
+
+    // #6 free from path, with or without query and hash
+    // remove last path segment form base path
+    basePathname = basePathname.slice(0, basePathname.lastIndexOf(PATH_SEPARATOR) + 1);
+
+    return getUrlTill(base, 'host') + basePathname + relative;
 }
 
 /**
@@ -243,6 +421,7 @@ function toLegacyNodeUrl (url) {
 module.exports = {
     encode,
     toNodeUrl,
+    resolveNodeUrl,
     toLegacyNodeUrl,
     encodeQueryString
 };
