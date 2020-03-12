@@ -42,7 +42,7 @@
     "eslint-plugin-security": "^1.4.0",
     "jsdoc": "^3.6.3",
     "mocha": "^6.2.2",
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.0",
     "postman-jsdoc-theme": "0.0.3",
     "recursive-readdir": "^2.2.2",
     "shelljs": "^0.8.3"
