@@ -60,6 +60,9 @@ const url = require('url'),
     FRAGMENT_ENCODE_SET = encodeSet.FRAGMENT_ENCODE_SET,
     C0_CONTROL_ENCODE_SET = encodeSet.C0_CONTROL_ENCODE_SET,
 
+    PARAM_VALUE_ENCODE_SET = EncodeSet.extend(QUERY_ENCODE_SET, ['&']).seal(),
+    PARAM_KEY_ENCODE_SET = EncodeSet.extend(QUERY_ENCODE_SET, ['&', '=']).seal(),
+
     E = '',
     EQUALS = '=',
     AMPERSAND = '&',
@@ -199,8 +202,8 @@ function encodeFragment (fragment) {
  * Encodes single query parameter and returns as a string.
  *
  * @example
- * // returns 'param%20%22%23%26%27%3C%3D%3E'
- * encodeQueryParam('param "#&\'<=>')
+ * // returns 'param%20%22%23%27%3C%3E'
+ * encodeQueryParam('param "#\'<>')
  *
  * // returns 'foo=bar'
  * encodeQueryParam({ key: 'foo', value: 'bar' })
@@ -222,14 +225,14 @@ function encodeQueryParam (param) {
         result;
 
     if (typeof key === STRING) {
-        result = _percentEncode(key, QUERY_ENCODE_SET);
+        result = _percentEncode(key, PARAM_KEY_ENCODE_SET);
     }
     else {
         result = E;
     }
 
     if (typeof value === STRING) {
-        result += EQUALS + _percentEncode(value, QUERY_ENCODE_SET);
+        result += EQUALS + _percentEncode(value, PARAM_VALUE_ENCODE_SET);
     }
 
     return result;
