@@ -30,7 +30,7 @@
 const STRING = 'string',
     FUNCTION = 'function',
 
-    QUERY_ENCODE_CHARS = [' ', '"', '#', '&', '\'', '<', '=', '>'],
+    QUERY_ENCODE_CHARS = [' ', '"', '#', '\'', '<', '>'],
     FRAGMENT_EXTEND_CHARS = [' ', '"', '<', '>', '`'],
     PATH_EXTEND_CHARS = ['#', '?', '{', '}'],
     USERINFO_EXTEND_CHARS = ['/', ':', ';', '=', '@', '[', '\\', ']', '^', '|'];
@@ -321,11 +321,11 @@ var
 
     /**
      * The query percent-encode set is the C0 control percent-encode set and
-     * U+0020 SPACE, U+0022 ("), U+0023 (#), U+0026 (&), U+0027 ('), U+003C (<),
-     * U+003D (=), and U+003E (>).
+     * U+0020 SPACE, U+0022 ("), U+0023 (#), U+0027 ('), U+003C (<), and U+003E (>).
      *
      * @const
      * @type {EncodeSet}
+     * @see {@link https://url.spec.whatwg.org/#query-state}
      */
     QUERY_ENCODE_SET = new EncodeSet(QUERY_ENCODE_CHARS).seal();
 
