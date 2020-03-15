@@ -17,12 +17,12 @@ describe('.encode', function () {
         expect(encode(char)).to.equal(percentEncodeCharCode(127));
     });
 
-    it('should percent-encode SPACE, ("), (#), (&), (\'), (<), (=), and (>)', function () {
+    it('should percent-encode SPACE, ("), (#), (\'), (<), and (>)', function () {
         var i,
             char,
             encoded,
             chars = [],
-            expected = [' ', '"', '#', '&', '\'', '<', '=', '>'];
+            expected = [' ', '"', '#', '\'', '<', '>'];
 
         for (i = 32; i < 127; i++) {
             char = String.fromCharCode(i);

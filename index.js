@@ -206,8 +206,8 @@ function toNodeUrl (url, disableEncoding) {
     hostname = url.getHost().toLowerCase();
 
     if (url.query && url.query.count()) {
-        queryParams = disableEncoding ? url.getQueryString({ ignoreDisabled: true }) :
-            encoder.encodeQueryParams(url.query.all());
+        queryParams = url.getQueryString({ ignoreDisabled: true });
+        queryParams = disableEncoding ? queryParams : encoder.encodeQueryParam(queryParams);
 
         // either all the params are disabled or a single param is like { key: '' } (http://localhost?)
         // in that case, query separator ? must be included in the raw URL.

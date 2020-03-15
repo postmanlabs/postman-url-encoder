@@ -230,12 +230,12 @@ describe('encoder', function () {
             expect(encoder.encodeQueryParam(char)).to.equal(encoder.percentEncodeCharCode(127));
         });
 
-        it('should percent-encode SPACE, ("), (#), (&), (\'), (<), (=), and (>)', function () {
+        it('should percent-encode SPACE, ("), (#), (\'), (<), and (>)', function () {
             var i,
                 char,
                 encoded,
                 chars = [],
-                expected = [' ', '"', '#', '&', '\'', '<', '=', '>'];
+                expected = [' ', '"', '#', '\'', '<', '>'];
 
             for (i = 32; i < 127; i++) {
                 char = String.fromCharCode(i);
@@ -273,8 +273,48 @@ describe('encoder', function () {
             expect(encoder.encodeQueryParam({ key: 'q', value: '(🚀)' })).to.equal('q=(%F0%9F%9A%80)');
         });
 
+        it('should percent-encode SPACE, ("), (#), (&), (\'), (<), (=), and (>) in param key', function () {
+            var i,
+                char,
+                encoded,
+                chars = [],
+                expected = [' ', '"', '#', '&', '\'', '<', '=', '>'];
+
+            for (i = 32; i < 127; i++) {
+                char = String.fromCharCode(i);
+                encoded = encoder.encodeQueryParam({ key: char });
+
+                if (char !== encoded) {
+                    chars.push(char);
+                    expect(encoded).to.equal(encoder.percentEncodeCharCode(i));
+                }
+            }
+
+            expect(chars).to.have.all.members(expected);
+        });
+
+        it('should percent-encode SPACE, ("), (#), (&), (\'), (<), and (>) in param value', function () {
+            var i,
+                char,
+                encoded,
+                chars = [],
+                expected = [' ', '"', '#', '&', '\'', '<', '>'];
+
+            for (i = 32; i < 127; i++) {
+                char = String.fromCharCode(i);
+                encoded = encoder.encodeQueryParam({ value: char }).slice(1); // leading `=`
+
+                if (char !== encoded) {
+                    chars.push(char);
+                    expect(encoded).to.equal(encoder.percentEncodeCharCode(i));
+                }
+            }
+
+            expect(chars).to.have.all.members(expected);
+        });
+
         it('should handle param object without key', function () {
-            expect(encoder.encodeQueryParam({ value: 'bar' })).to.eql('=bar');
+            expect(encoder.encodeQueryParam({ value: 'bar&=#' })).to.eql('=bar%26=%23');
         });
 
         it('should handle param object with null key', function () {
@@ -282,7 +322,7 @@ describe('encoder', function () {
         });
 
         it('should handle param object without value', function () {
-            expect(encoder.encodeQueryParam({ key: 'foo' })).to.eql('foo');
+            expect(encoder.encodeQueryParam({ key: 'foo&=#' })).to.eql('foo%26%3D%23');
         });
 
         it('should handle param object with null value', function () {

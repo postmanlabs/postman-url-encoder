@@ -9,7 +9,7 @@ const fs = require('fs'),
 
 describe('.toNodeUrl', function () {
     it('should accept url string', function () {
-        expect(toNodeUrl('cooper@郵便屋さん.com:399/foo&bar/{baz}?q=("foo")#`hash`'))
+        expect(toNodeUrl('cooper@郵便屋さん.com:399/foo&bar/{baz}?q=("f=o&o")#`hash`'))
             .to.eql({
                 protocol: 'http:',
                 slashes: true,
@@ -18,11 +18,11 @@ describe('.toNodeUrl', function () {
                 port: '399',
                 hostname: 'xn--48jwgn17gdel797d.com',
                 hash: '#%60hash%60',
-                search: '?q=(%22foo%22)',
-                query: 'q=(%22foo%22)',
+                search: '?q=(%22f=o&o%22)',
+                query: 'q=(%22f=o&o%22)',
                 pathname: '/foo&bar/%7Bbaz%7D',
-                path: '/foo&bar/%7Bbaz%7D?q=(%22foo%22)',
-                href: 'http://cooper@xn--48jwgn17gdel797d.com:399/foo&bar/%7Bbaz%7D?q=(%22foo%22)#%60hash%60'
+                path: '/foo&bar/%7Bbaz%7D?q=(%22f=o&o%22)',
+                href: 'http://cooper@xn--48jwgn17gdel797d.com:399/foo&bar/%7Bbaz%7D?q=(%22f=o&o%22)#%60hash%60'
             });
     });
 

@@ -136,10 +136,10 @@ describe('constants', function () {
             expect(doesExtends(encodeSet.C0_CONTROL_ENCODE_SET, SET)).to.be.true;
         });
 
-        it('should be extend by SPACE, ("), (#), (&), (\'), (<), (=), and (>)', function () {
+        it('should be extend by SPACE, ("), (#), (\'), (<), and (>)', function () {
             var i,
                 chars = [],
-                expected = [' ', '"', '#', '&', '\'', '<', '=', '>'];
+                expected = [' ', '"', '#', '\'', '<', '>'];
 
             for (i = 32; i < 127; i++) {
                 SET.has(i) && chars.push(String.fromCharCode(i));
