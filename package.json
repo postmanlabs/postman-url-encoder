@@ -2,7 +2,7 @@
   "name": "postman-url-encoder",
   "description": "Implementation of the WHATWG URL Standard",
   "author": "Postman Labs <help@getpostman.com>",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "license": "Apache-2.0",
   "keywords": [
     "postman",
@@ -27,7 +27,7 @@
     "test-benchmark": "node npm/test-benchmark.js"
   },
   "dependencies": {
-    "postman-collection": "^3.6.0",
+    "postman-collection": "^3.6.3",
     "punycode": "^2.1.1"
   },
   "devDependencies": {
@@ -41,7 +41,7 @@
     "eslint-plugin-jsdoc": "^18.11.0",
     "eslint-plugin-security": "^1.4.0",
     "jsdoc": "^3.6.3",
-    "mocha": "^6.2.2",
+    "mocha": "^7.2.0",
     "nyc": "^14.1.1",
     "postman-jsdoc-theme": "0.0.3",
     "recursive-readdir": "^2.2.2",
