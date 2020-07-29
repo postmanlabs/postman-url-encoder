@@ -83,7 +83,11 @@ describe('.toNodeUrl', function () {
             'http://xn--48jwgn17gdel797d.com',
             'http://xn--iñvalid.com',
             'http://192.168.0.1:8080',
-            'http://192.168.0.1'
+            'http://192.168.0.1',
+            'http://[2a03:2880:f12f:183:face:b00c:0:25de]/index.html',
+            'http://[::1]',
+            'http://[::1]:3000',
+            'http://[]:1234'
         ].forEach(function (url) {
             expect(NodeUrl.parse(url), url).to.deep.include(toNodeUrl(url));
         });
@@ -373,6 +377,20 @@ describe('.toNodeUrl', function () {
                     hostname: '255.255.0.255'
                 });
 
+            });
+
+            it('should remove square brackets from IPv6 hostname', function () {
+                expect(toNodeUrl('[::1]')).to.include({
+                    host: '[::1]',
+                    hostname: '::1',
+                    href: 'http://[::1]/'
+                });
+
+                expect(toNodeUrl('[::1]:3000')).to.include({
+                    host: '[::1]:3000',
+                    hostname: '::1',
+                    href: 'http://[::1]:3000/'
+                });
             });
 
             it('should not double encode hostname', function () {
