@@ -3,6 +3,8 @@ master:
     - >-
       GH-41 Fixed a bug where square brackets are not removed from IPv6 hostname
       on `toNodeURL()`
+  chores:
+    - Updated dependencies
 
 2.1.2:
   date: 2020-07-13

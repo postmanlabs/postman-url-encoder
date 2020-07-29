@@ -27,7 +27,7 @@
     "test-benchmark": "node npm/test-benchmark.js"
   },
   "dependencies": {
-    "postman-collection": "^3.6.3",
+    "postman-collection": "^3.6.4",
     "punycode": "^2.1.1"
   },
   "devDependencies": {
@@ -40,7 +40,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-jsdoc": "^18.11.0",
     "eslint-plugin-security": "^1.4.0",
-    "jsdoc": "^3.6.3",
+    "jsdoc": "^3.6.5",
     "mocha": "^7.2.0",
     "nyc": "^14.1.1",
     "postman-jsdoc-theme": "0.0.3",
