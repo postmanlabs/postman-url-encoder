@@ -33,6 +33,8 @@ const sdk = require('postman-collection'),
     OBJECT = 'object',
     FUNCTION = 'function',
     DEFAULT_PROTOCOL = 'http',
+    LEFT_SQUARE_BRACKET = '[',
+    RIGHT_SQUARE_BRACKET = ']',
 
     PATH_SEPARATOR = '/',
     QUERY_SEPARATOR = '?',
@@ -258,7 +260,7 @@ function toNodeUrl (url, disableEncoding) {
     }
 
     // #host, #hostname
-    nodeUrl.host = nodeUrl.hostname = encoder.encodeHost(hostname); // @note always encode hostname
+    nodeUrl.host = nodeUrl.hostname = hostname = encoder.encodeHost(hostname); // @note always encode hostname
 
     // #href = protocol://user:password@host.name
     nodeUrl.href += nodeUrl.hostname;
@@ -300,6 +302,14 @@ function toNodeUrl (url, disableEncoding) {
 
         // #href = protocol://user:password@host.name:port/p/a/t/h?q=query#hash
         nodeUrl.href += nodeUrl.hash;
+    }
+
+    // Finally apply Node.js shenanigans
+    // # Remove square brackets from IPv6 #hostname
+    // Refer: https://github.com/nodejs/node/blob/v12.18.3/lib/url.js#L399
+    // Refer: https://github.com/nodejs/node/blob/v12.18.3/lib/internal/url.js#L1273
+    if (hostname[0] === LEFT_SQUARE_BRACKET && hostname[hostname.length - 1] === RIGHT_SQUARE_BRACKET) {
+        nodeUrl.hostname = hostname.slice(1, -1);
     }
 
     return nodeUrl;
