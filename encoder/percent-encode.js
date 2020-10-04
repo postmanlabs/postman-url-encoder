@@ -68,7 +68,7 @@ function isPreEncoded (buffer, i) {
  * @returns {String} Percent-encoded character
  */
 function encodeCharCode (code) {
-    var hex = code.toString(16).toUpperCase();
+    let hex = code.toString(16).toUpperCase();
 
     (hex.length === 1) && (hex = ZERO + hex);
 
@@ -87,7 +87,7 @@ function encodeCharCode (code) {
  * @returns {String} Percent-encoded string
  */
 function encode (value, encodeSet) {
-    var i,
+    let i,
         ii,
         charCode,
         encoded = E,

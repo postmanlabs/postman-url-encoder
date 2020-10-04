@@ -76,7 +76,7 @@ const querystring = require('querystring'),
  * @param {String} [urlPart='query'] one of ['host', 'pathname', 'query']
  */
 function getUrlTill (url, urlPart) {
-    var result = '';
+    let result = '';
 
     if (url.protocol) {
         result += url.protocol + DOUBLE_SLASH;
@@ -174,7 +174,7 @@ function encodeQueryString (query) {
  * @returns {Url} Node.js like parsed and encoded object
  */
 function toNodeUrl (url, disableEncoding) {
-    var nodeUrl = {
+    let nodeUrl = {
             protocol: null,
             slashes: null,
             auth: null,
@@ -348,7 +348,7 @@ function resolveNodeUrl (base, relative) {
         return relative;
     }
 
-    var i,
+    let i,
         ii,
         index,
         baseHref,
