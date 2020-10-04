@@ -293,7 +293,6 @@ function encodeQueryParams (params) {
         // { key: ['value1', 'value2', 'value3'] }
         if (Array.isArray(paramValue)) {
             for (j = 0, jj = paramValue.length; j < jj; j++) {
-
                 notFirstParam && (result += AMPERSAND);
                 notFirstParam = true;
 

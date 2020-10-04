@@ -1,6 +1,6 @@
-# Postman URL Encoder [![codecov](https://codecov.io/gh/postmanlabs/postman-url-encoder/branch/develop/graph/badge.svg)](https://codecov.io/gh/postmanlabs/postman-url-encoder)
+# Postman URL Encoder [![Build Status](https://travis-ci.com/postmanlabs/postman-url-encoder.svg?branch=develop)](https://travis-ci.com/postmanlabs/postman-url-encoder) [![codecov](https://codecov.io/gh/postmanlabs/postman-url-encoder/branch/develop/graph/badge.svg)](https://codecov.io/gh/postmanlabs/postman-url-encoder)
 
-Postman URL Encoder is a NodeJS module that provides various URL encoding related APIs. This module is created to 
+Postman URL Encoder is a NodeJS module that provides various URL encoding related APIs. This module is created to
 implement the [WHATWG URL specification](https://url.spec.whatwg.org/) to remove dependency on Node's URL APIs across
 Postman systems. These APIs are useful to encode different parts (like hostname, path, query) of URL and convert
 [PostmanUrl](http://www.postmanlabs.com/postman-collection/Url.html) object into

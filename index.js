@@ -169,9 +169,9 @@ function encodeQueryString (query) {
  *     query: [{ key: 'foo', value: 'bar & baz' }]
  * }))
  *
- * @param {PostmanUrl|String} url
- * @param {Boolean} disableEncoding
- * @returns {Url}
+ * @param {PostmanUrl|String} url URL string or PostmanUrl object
+ * @param {Boolean} disableEncoding Turn encoding off
+ * @returns {Url} Node.js like parsed and encoded object
  */
 function toNodeUrl (url, disableEncoding) {
     var nodeUrl = {
@@ -359,7 +359,7 @@ function resolveNodeUrl (base, relative) {
 
     // bail out if base is not like Node url object
     for (i = 0, ii = requiredProps.length; i < ii; i++) {
-        if (!base.hasOwnProperty(requiredProps[i])) {
+        if (!Object.hasOwnProperty.call(base, requiredProps[i])) {
             return relative;
         }
     }

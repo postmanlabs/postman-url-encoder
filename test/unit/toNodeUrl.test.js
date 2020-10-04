@@ -376,7 +376,6 @@ describe('.toNodeUrl', function () {
                     host: '255.255.0.255',
                     hostname: '255.255.0.255'
                 });
-
             });
 
             it('should remove square brackets from IPv6 hostname', function () {
