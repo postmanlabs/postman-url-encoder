@@ -1,6 +1,17 @@
 master:
   new features:
     - GH-48 Added URL parser module
+  breaking changes:
+    - GH-49 Dropped support for Node < v10
+  chores:
+    - >-
+      GH-49 Updated .npmignore to prevent the addition of tests and config
+      files in the published package
+    - GH-49 Added system test
+    - GH-49 Moved postman-collection to dev-dependencies
+    - GH-49 Updated nyc configuration
+    - GH-49 Updated ESLint rules
+    - GH-49 Updated dependencies
 
 2.1.3:
   date: 2020-07-29
