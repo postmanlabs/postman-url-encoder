@@ -1,4 +1,5 @@
-master:
+3.0.0:
+  date: 2020-10-04
   new features:
     - GH-48 Added URL parser module
   breaking changes:
@@ -8,8 +9,8 @@ master:
     - GH-52 Automated releases and publish process
     - GH-51 Automated gh-pages docs deployment
     - >-
-      GH-49 Updated .npmignore to prevent the addition of tests and config
-      files in the published package
+      GH-49 Updated .npmignore to prevent the addition of tests and config files
+      in the published package
     - GH-49 Added system test
     - GH-49 Moved postman-collection to dev-dependencies
     - GH-49 Updated nyc configuration
