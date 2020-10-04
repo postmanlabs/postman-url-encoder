@@ -5,14 +5,12 @@
 // Note: Use '--save' flag to store the benchmark results in local file.
 //       Example: "npm run test-benchmark -- --save"
 // ---------------------------------------------------------------------------------------------------------------------
-/* eslint-env node, es6 */
 
-require('shelljs/global');
-
-var chalk = require('chalk');
+const chalk = require('chalk'),
+    { exec } = require('shelljs');
 
 module.exports = function (exit) {
-    console.log(chalk.yellow.bold('Running benchmark tests'));
+    console.info(chalk.yellow.bold('Running benchmark tests'));
 
     var saveResults = '';
 
@@ -28,4 +26,4 @@ module.exports = function (exit) {
 };
 
 // ensure we run this script exports if this is a direct stdin.tty run
-!module.parent && module.exports(exit);
+!module.parent && module.exports(process.exit);
