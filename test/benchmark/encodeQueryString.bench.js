@@ -1,4 +1,5 @@
-var encodeQueryString = require('../..').encodeQueryString;
+/* eslint-disable no-undef */
+const encodeQueryString = require('../..').encodeQueryString;
 
 suite('encodeQueryString()', function () {
     var queryArray = ['v1', '(v2)', '你ス'],

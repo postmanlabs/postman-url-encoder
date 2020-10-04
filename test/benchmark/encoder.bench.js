@@ -1,4 +1,5 @@
-var encoder = require('../../encoder');
+/* eslint-disable no-undef */
+const encoder = require('../../encoder');
 
 suite('encodeHost()', function () {
     var arrayHost = ['foo', 'bar', 'baz', 'com'],
