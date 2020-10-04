@@ -3,7 +3,7 @@
 // This script is intended to generate documentation for this module.
 // ---------------------------------------------------------------------------------------------------------------------
 
-var path = require('path'),
+const path = require('path'),
 
     chalk = require('chalk'),
     { exec, rm, test } = require('shelljs'),
