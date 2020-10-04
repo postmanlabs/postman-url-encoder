@@ -594,6 +594,15 @@ describe('.toNodeUrl', function () {
                     search: '?&',
                     href: 'http://localhost/?&'
                 });
+
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    query: [{ key: '' }]
+                }))).to.include({
+                    query: '',
+                    search: '?',
+                    href: 'http://example.com/?'
+                });
             });
         });
 

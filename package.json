@@ -27,7 +27,6 @@
     "test-benchmark": "node npm/test-benchmark.js"
   },
   "dependencies": {
-    "postman-collection": "^3.6.4",
     "punycode": "^2.1.1"
   },
   "devDependencies": {
@@ -43,6 +42,7 @@
     "jsdoc": "^3.6.5",
     "mocha": "^7.2.0",
     "nyc": "^14.1.1",
+    "postman-collection": "^3.6.7",
     "postman-jsdoc-theme": "0.0.3",
     "recursive-readdir": "^2.2.2",
     "shelljs": "^0.8.3"
