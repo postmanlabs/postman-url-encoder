@@ -85,7 +85,7 @@ const url = require('url'),
      * @returns {String} punycode encoded domain name
      */
     domainToASCII = (function () {
-        var domainToASCII = url.domainToASCII;
+        const domainToASCII = url.domainToASCII;
 
         // @note In Electron v3.1.8, the Node.js native url.domainToASCII
         // doesn't work as expected. ¯\_(ツ)_/¯
@@ -219,7 +219,7 @@ function encodeQueryParam (param) {
         return _percentEncode(param, QUERY_ENCODE_SET);
     }
 
-    var key = param.key,
+    let key = param.key,
         value = param.value,
         result;
 
@@ -251,7 +251,7 @@ function encodeQueryParam (param) {
  * @returns {String} Percent-encoded query string
  */
 function encodeQueryParams (params) {
-    var i,
+    let i,
         j,
         ii,
         jj,
