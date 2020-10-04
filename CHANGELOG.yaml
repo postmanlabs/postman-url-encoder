@@ -1,3 +1,7 @@
+master:
+  new features:
+    - GH-48 Added URL parser module
+
 2.1.3:
   date: 2020-07-29
   fixed bugs:
