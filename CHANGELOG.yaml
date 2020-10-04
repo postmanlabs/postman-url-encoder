@@ -5,6 +5,7 @@ master:
     - GH-49 Dropped support for Node < v10
   chores:
     - GH-50 Convert EncodeSet to ES6 class
+    - GH-51 Automated gh-pages docs deployment
     - >-
       GH-49 Updated .npmignore to prevent the addition of tests and config
       files in the published package
