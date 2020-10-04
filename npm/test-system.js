@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 // ---------------------------------------------------------------------------------------------------------------------
-// This script is intended to execute all unit tests.
+// This script is intended to execute all system tests.
 // ---------------------------------------------------------------------------------------------------------------------
 
 const path = require('path'),
 
-    chalk = require('chalk'),
     Mocha = require('mocha'),
+    chalk = require('chalk'),
     recursive = require('recursive-readdir'),
 
-    SPEC_SOURCE_DIR = path.join('test', 'unit');
+    SPEC_SOURCE_DIR = path.join(__dirname, '..', 'test', 'system');
 
 module.exports = function (exit) {
     // banner line
-    console.info(chalk.yellow.bold('Running unit tests using mocha on node...'));
+    console.info(chalk.yellow.bold('\nRunning system tests using mocha...'));
 
     // add all spec files to mocha
     recursive(SPEC_SOURCE_DIR, (err, files) => {
@@ -31,9 +31,13 @@ module.exports = function (exit) {
 
         // start the mocha run
         mocha.run((runError) => {
-            runError && console.error(runError.stack || runError);
+            if (runError) {
+                console.error(runError.stack || runError);
 
-            exit(runError || process.exitCode ? 1 : 0);
+                return exit(1);
+            }
+
+            exit();
         });
     });
 };

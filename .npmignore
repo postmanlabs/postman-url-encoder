@@ -27,7 +27,7 @@ Thumbs.db
 # - Allow sublime text project file to be committed in the development directory.
 !/develop/*.sublime-project
 
-# - Prevent CI output files from being Added
+# - Prevent CI output files from being added
 /out/
 
 # - Prevent diff backups from SourceTree from showing as commit.
@@ -37,6 +37,18 @@ Thumbs.db
 *.REMOTE.*
 *.orig
 
-# - Prevent unit test coverage reports from being committed to the repository
+# - Prevent code coverage reports from being added
 .coverage
 .nyc_output
+
+# - Prevent config and test files from being added
+.git*
+npm/
+test/
+benchmark/
+.eslintrc
+.nycrc.js
+codecov.yml
+.travis.yml
+.editorconfig
+.jsdoc-config.json

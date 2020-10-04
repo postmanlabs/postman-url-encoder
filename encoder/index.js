@@ -6,7 +6,7 @@
  * const encoder = require('postman-url-encoder/encoder')
  *
  * // returns 'xn--48jwgn17gdel797d.com'
- * var hostname = encoder.encodeHost('郵便屋さん.com'])
+ * encoder.encodeHost('郵便屋さん.com')
  *
  * @example <caption>Using EncodeSet</caption>
  * var EncodeSet = require('postman-url-encoder/encoder').EncodeSet
@@ -18,7 +18,6 @@
  *
  * // returns true
  * fragmentEncodeSet.has('<'.charCodeAt(0))
- *
  *
  * @module postman-url-encoder/encoder
  * @see {@link https://url.spec.whatwg.org/#url-representation}
@@ -86,7 +85,7 @@ const url = require('url'),
      * @returns {String} punycode encoded domain name
      */
     domainToASCII = (function () {
-        var domainToASCII = url.domainToASCII;
+        const domainToASCII = url.domainToASCII;
 
         // @note In Electron v3.1.8, the Node.js native url.domainToASCII
         // doesn't work as expected. ¯\_(ツ)_/¯
@@ -220,7 +219,7 @@ function encodeQueryParam (param) {
         return _percentEncode(param, QUERY_ENCODE_SET);
     }
 
-    var key = param.key,
+    let key = param.key,
         value = param.value,
         result;
 
@@ -252,7 +251,7 @@ function encodeQueryParam (param) {
  * @returns {String} Percent-encoded query string
  */
 function encodeQueryParams (params) {
-    var i,
+    let i,
         j,
         ii,
         jj,
@@ -294,7 +293,6 @@ function encodeQueryParams (params) {
         // { key: ['value1', 'value2', 'value3'] }
         if (Array.isArray(paramValue)) {
             for (j = 0, jj = paramValue.length; j < jj; j++) {
-
                 notFirstParam && (result += AMPERSAND);
                 notFirstParam = true;
 

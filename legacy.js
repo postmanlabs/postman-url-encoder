@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 var url = require('url'),
 
     /**
@@ -53,27 +52,28 @@ var url = require('url'),
     encoder;
 
 encoder = {
-
     /**
      * Percent encode a character with given code.
      *
      * @param {Number} c - character code of the character to encode
      * @returns {String} - percent encoding of given character
      */
-    percentEncode: function (c) {
+    percentEncode (c) {
         var hex = c.toString(16).toUpperCase();
+
         (hex.length === 1) && (hex = ZERO + hex);
+
         return PERCENT + hex;
     },
 
     /**
      * Checks if character at given index in the buffer is already percent encoded or not.
      *
-     * @param {Buffer} buffer
-     * @param {Number} i
+     * @param {Buffer} buffer -
+     * @param {Number} i -
      * @returns {Boolean}
      */
-    isPreEncoded: function (buffer, i) {
+    isPreEncoded (buffer, i) {
         // If it is % check next two bytes for percent encode characters
         // looking for pattern %00 - %FF
         return (buffer[i] === 0x25 &&
@@ -85,10 +85,10 @@ encoder = {
     /**
      * Checks if character with given code is valid hexadecimal digit or not.
      *
-     * @param {Number} byte
+     * @param {Number} byte -
      * @returns {Boolean}
      */
-    isPreEncodedCharacter: function (byte) {
+    isPreEncodedCharacter (byte) {
         return (byte >= 0x30 && byte <= 0x39) || // 0-9
             (byte >= 0x41 && byte <= 0x46) || // A-F
             (byte >= 0x61 && byte <= 0x66); // a-f
@@ -97,10 +97,10 @@ encoder = {
     /**
      * Checks whether given character should be percent encoded or not for fixture.
      *
-     * @param {Number} byte
+     * @param {Number} byte -
      * @returns {Boolean}
      */
-    charactersToPercentEncode: function (byte) {
+    charactersToPercentEncode (byte) {
         return (byte < 0x23 || byte > 0x7E || // Below # and after ~
             byte === 0x3C || byte === 0x3E || // > and <
             byte === 0x28 || byte === 0x29 || // ( and )
@@ -115,10 +115,10 @@ encoder = {
      * Note: This function is supposed to be used on top of node's inbuilt url encoding
      *       to solve issue https://github.com/nodejs/node/issues/8321
      *
-     * @param {String} value
+     * @param {String} value -
      * @returns {String}
      */
-    encode: function (value) {
+    encode (value) {
         if (!value) { return E; }
 
         var buffer = Buffer.from(value),
@@ -127,12 +127,11 @@ encoder = {
             ii;
 
         for (i = 0, ii = buffer.length; i < ii; ++i) {
-
             if (encoder.charactersToPercentEncode(buffer[i]) && !encoder.isPreEncoded(buffer, i)) {
                 ret += encoder.percentEncode(buffer[i]);
             }
             else {
-                ret += String.fromCodePoint(buffer[i]);  // Only works in ES6 (available in Node v4+)
+                ret += String.fromCodePoint(buffer[i]); // Only works in ES6 (available in Node v4+)
             }
         }
 
@@ -144,7 +143,7 @@ encoder = {
  * Parses a query string into an array, preserving parameter values
  *
  * @private
- * @param {String} string
+ * @param {String} string -
  * @returns {*}
  */
 function parseQueryString (string) {
@@ -183,7 +182,7 @@ function parseQueryString (string) {
  * Stringifies a query string, from an array of parameters
  *
  * @private
- * @param {Object[]} parameters
+ * @param {Object[]} parameters -
  * @returns {string}
  */
 function stringifyQueryParams (parameters) {
@@ -211,7 +210,7 @@ function stringifyQueryParams (parameters) {
  * Converts URL string into Node's Url object with encoded values
  *
  * @private
- * @param {String} urlString
+ * @param {String} urlString -
  * @returns {Url}
  */
 function toNodeUrl (urlString) {

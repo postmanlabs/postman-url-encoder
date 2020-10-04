@@ -376,7 +376,6 @@ describe('.toNodeUrl', function () {
                     host: '255.255.0.255',
                     hostname: '255.255.0.255'
                 });
-
             });
 
             it('should remove square brackets from IPv6 hostname', function () {
@@ -593,6 +592,15 @@ describe('.toNodeUrl', function () {
                     query: '&',
                     search: '?&',
                     href: 'http://localhost/?&'
+                });
+
+                expect(toNodeUrl(new PostmanUrl({
+                    host: 'example.com',
+                    query: [{ key: '' }]
+                }))).to.include({
+                    query: '',
+                    search: '?',
+                    href: 'http://example.com/?'
                 });
             });
         });

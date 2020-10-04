@@ -1,4 +1,5 @@
-var fs = require('fs'),
+/* eslint-disable no-undef */
+const fs = require('fs'),
     path = require('path'),
     toLegacyNodeUrl = require('../..').toLegacyNodeUrl,
     parseCsv = require('@postman/csv-parse/lib/sync');

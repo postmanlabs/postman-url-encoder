@@ -17,10 +17,10 @@
  * @see {@link https://url.spec.whatwg.org}
  */
 
-const sdk = require('postman-collection'),
-    querystring = require('querystring'),
+const querystring = require('querystring'),
 
     legacy = require('./legacy'),
+    parser = require('./parser'),
     encoder = require('./encoder'),
     QUERY_ENCODE_SET = require('./encoder/encode-set').QUERY_ENCODE_SET,
 
@@ -38,7 +38,9 @@ const sdk = require('postman-collection'),
 
     PATH_SEPARATOR = '/',
     QUERY_SEPARATOR = '?',
+    PARAMS_SEPARATOR = '&',
     SEARCH_SEPARATOR = '#',
+    DOMAIN_SEPARATOR = '.',
     AUTH_CREDENTIALS_SEPARATOR = '@',
 
     // @note this regular expression is referred from Node.js URL parser
@@ -74,7 +76,7 @@ const sdk = require('postman-collection'),
  * @param {String} [urlPart='query'] one of ['host', 'pathname', 'query']
  */
 function getUrlTill (url, urlPart) {
-    var result = '';
+    let result = '';
 
     if (url.protocol) {
         result += url.protocol + DOUBLE_SLASH;
@@ -167,12 +169,12 @@ function encodeQueryString (query) {
  *     query: [{ key: 'foo', value: 'bar & baz' }]
  * }))
  *
- * @param {PostmanUrl|String} url
- * @param {Boolean} disableEncoding
- * @returns {Url}
+ * @param {PostmanUrl|String} url URL string or PostmanUrl object
+ * @param {Boolean} disableEncoding Turn encoding off
+ * @returns {Url} Node.js like parsed and encoded object
  */
 function toNodeUrl (url, disableEncoding) {
-    var nodeUrl = {
+    let nodeUrl = {
             protocol: null,
             slashes: null,
             auth: null,
@@ -190,40 +192,48 @@ function toNodeUrl (url, disableEncoding) {
         hostname,
         pathname,
         authUser,
-        authPassword,
-        queryParams;
+        queryParams,
+        authPassword;
 
-    // convert URL string to PostmanUrl
-    if (typeof url === STRING) {
-        url = new sdk.Url(url);
-    }
+    // Check if PostmanUrl instance and prepare segments
+    if (url && url.constructor && url.constructor._postman_propertyName === 'Url') {
+        // @note getPath() always adds a leading '/', similar to Node.js API
+        pathname = url.getPath();
+        hostname = url.getHost().toLowerCase();
 
-    // bail out if given url is not a PostmanUrl instance
-    if (!sdk.Url.isUrl(url)) {
-        return nodeUrl;
-    }
+        if (url.query && url.query.count()) {
+            queryParams = url.getQueryString({ ignoreDisabled: true });
+            queryParams = disableEncoding ? queryParams : encoder.encodeQueryParam(queryParams);
 
-    // @note getPath() always adds a leading '/', similar to Node.js API
-    pathname = url.getPath();
-    hostname = url.getHost().toLowerCase();
+            // either all the params are disabled or a single param is like { key: '' } (http://localhost?)
+            // in that case, query separator ? must be included in the raw URL.
+            // @todo Add helper in SDK to handle this
+            if (queryParams === E) {
+                // check if there's any enabled param, if so, set queryString to empty string
+                // otherwise (all disabled), it will be set as undefined
+                queryParams = url.query.find(function (param) { return !(param && param.disabled); }) && E;
+            }
+        }
 
-    if (url.query && url.query.count()) {
-        queryParams = url.getQueryString({ ignoreDisabled: true });
-        queryParams = disableEncoding ? queryParams : encoder.encodeQueryParam(queryParams);
-
-        // either all the params are disabled or a single param is like { key: '' } (http://localhost?)
-        // in that case, query separator ? must be included in the raw URL.
-        // @todo Add helper in SDK to handle this
-        if (queryParams === E) {
-            // check if there's any enabled param, if so, set queryString to empty string
-            // otherwise (all disabled), it will be set as undefined
-            queryParams = url.query.find(function (param) { return !(param && param.disabled); }) && E;
+        if (url.auth) {
+            authUser = url.auth.user;
+            authPassword = url.auth.password;
         }
     }
+    // Parser URL string and prepare segments
+    else if (typeof url === STRING) {
+        url = parser.parse(url);
 
-    if (url.auth) {
-        authUser = url.auth.user;
-        authPassword = url.auth.password;
+        pathname = PATH_SEPARATOR + (url.path || []).join(PATH_SEPARATOR);
+        hostname = (url.host || []).join(DOMAIN_SEPARATOR).toLowerCase();
+        queryParams = url.query && (queryParams = url.query.join(PARAMS_SEPARATOR)) &&
+            (disableEncoding ? queryParams : encoder.encodeQueryParam(queryParams));
+        authUser = (url.auth || [])[0];
+        authPassword = (url.auth || [])[1];
+    }
+    // bail out with empty URL object for invalid input
+    else {
+        return nodeUrl;
     }
 
     // @todo Add helper in SDK to normalize port
@@ -338,7 +348,7 @@ function resolveNodeUrl (base, relative) {
         return relative;
     }
 
-    var i,
+    let i,
         ii,
         index,
         baseHref,
@@ -349,7 +359,7 @@ function resolveNodeUrl (base, relative) {
 
     // bail out if base is not like Node url object
     for (i = 0, ii = requiredProps.length; i < ii; i++) {
-        if (!base.hasOwnProperty(requiredProps[i])) {
+        if (!Object.hasOwnProperty.call(base, requiredProps[i])) {
             return relative;
         }
     }

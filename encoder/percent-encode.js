@@ -32,7 +32,7 @@ const E = '',
  * Checks if character with given code is valid hexadecimal digit or not.
  *
  * @private
- * @param {Number} byte
+ * @param {Number} byte Byte
  * @returns {Boolean}
  */
 function isPreEncodedCharacter (byte) {
@@ -68,7 +68,8 @@ function isPreEncoded (buffer, i) {
  * @returns {String} Percent-encoded character
  */
 function encodeCharCode (code) {
-    var hex = code.toString(16).toUpperCase();
+    let hex = code.toString(16).toUpperCase();
+
     (hex.length === 1) && (hex = ZERO + hex);
 
     return PERCENT + hex;
@@ -86,7 +87,7 @@ function encodeCharCode (code) {
  * @returns {String} Percent-encoded string
  */
 function encode (value, encodeSet) {
-    var i,
+    let i,
         ii,
         charCode,
         encoded = E,
