@@ -1,16 +1,16 @@
 language: node_js
 
+# 2*2 matrix for tests
 os:
   - linux
   - windows
-
 node_js:
-  - '6'
-  - '8'
-  - '10'
+  - 10
+  - 12
 
 jobs:
   include:
+    # run tests in Node.js stable and publish code coverage
     - name: 'Coverage'
       node_js: stable
       os: linux
