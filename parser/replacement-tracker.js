@@ -18,12 +18,12 @@ class ReplacementTracker {
     /**
      * Add new replacement to track.
      *
-     * @param {String} value
-     * @param {Number} index
+     * @param {String} value -
+     * @param {Number} index -
      */
     add (value, index) {
         this.replacements.push({
-            value,
+            value: value,
             index: index - this._offset
         });
 
@@ -45,7 +45,7 @@ class ReplacementTracker {
      * binary search.
      *
      * @private
-     * @param {Number} index
+     * @param {Number} index -
      * @returns {Number}
      */
     _findLowerIndex (index) {
@@ -73,9 +73,9 @@ class ReplacementTracker {
      * given range.
      *
      * @private
-     * @param {String} input
-     * @param {Number} beginIndex
-     * @param {Number} endIndex
+     * @param {String} input -
+     * @param {Number} beginIndex -
+     * @param {Number} endIndex -
      * @returns {String}
      */
     _applyInString (input, beginIndex, endIndex) {
@@ -113,9 +113,9 @@ class ReplacementTracker {
      * Patches a given string or array of strings by apply all the applicable
      * replacements done in the given range.
      *
-     * @param {String|String[]} input
-     * @param {Number} beginIndex
-     * @param {Number} endIndex
+     * @param {String|String[]} input -
+     * @param {Number} beginIndex -
+     * @param {Number} endIndex -
      * @returns {String|String[]}
      */
     apply (input, beginIndex, endIndex) {
@@ -146,7 +146,6 @@ class ReplacementTracker {
 
         return input;
     }
-
 }
 
 module.exports = ReplacementTracker;
