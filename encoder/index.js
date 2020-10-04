@@ -6,7 +6,7 @@
  * const encoder = require('postman-url-encoder/encoder')
  *
  * // returns 'xn--48jwgn17gdel797d.com'
- * var hostname = encoder.encodeHost('郵便屋さん.com'])
+ * encoder.encodeHost('郵便屋さん.com')
  *
  * @example <caption>Using EncodeSet</caption>
  * var EncodeSet = require('postman-url-encoder/encoder').EncodeSet
@@ -18,7 +18,6 @@
  *
  * // returns true
  * fragmentEncodeSet.has('<'.charCodeAt(0))
- *
  *
  * @module postman-url-encoder/encoder
  * @see {@link https://url.spec.whatwg.org/#url-representation}
