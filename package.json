@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@postman/csv-parse": "^4.0.2",
-    "@postman/shipit": "0.1.0",
+    "@postman/shipit": "0.2.0",
     "async": "^3.1.1",
     "bipbip": "^0.4.1",
     "chai": "^4.2.0",
