@@ -50,7 +50,7 @@
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "parse-gitignore": "^1.0.1",
-    "postman-collection": "^3.6.8",
+    "postman-collection": "^3.6.10",
     "postman-jsdoc-theme": "^0.0.3",
     "recursive-readdir": "^2.2.2",
     "shelljs": "^0.8.3"
