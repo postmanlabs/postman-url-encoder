@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build-docs": "node npm/build-docs.js",
+    "codecov": "node npm/publish-coverage.js",
     "release": "node npm/create-release.js",
     "test": "npm run test-lint && npm run test-unit",
     "test-benchmark": "node npm/test-benchmark.js",
