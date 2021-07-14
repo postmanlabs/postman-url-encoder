@@ -228,6 +228,42 @@ describe('parser', function () {
             });
         });
 
+        it('should handle extra slashes after protocol', function () {
+            expect(parser.parse('http:////localhost')).to.deep.include({
+                raw: 'http:////localhost',
+                protocol: 'http',
+                host: ['localhost'],
+                path: undefined
+            });
+        });
+
+        it('should handle extra backslashes after protocol', function () {
+            expect(parser.parse('http:\\\\\\\\localhost')).to.deep.include({
+                raw: 'http:\\\\\\\\localhost',
+                protocol: 'http',
+                host: ['localhost'],
+                path: undefined
+            });
+        });
+
+        it('should handle leading slashes', function () {
+            expect(parser.parse('//localhost/foo')).to.deep.include({
+                raw: '//localhost/foo',
+                protocol: undefined,
+                host: ['localhost'],
+                path: ['foo']
+            });
+        });
+
+        it('should handle leading backslashes', function () {
+            expect(parser.parse('\\\\localhost\\foo')).to.deep.include({
+                raw: '\\\\localhost\\foo',
+                protocol: undefined,
+                host: ['localhost'],
+                path: ['foo']
+            });
+        });
+
         it('should return default object for empty string input', function () {
             expect(parser.parse('')).to.deep.include(defaultObject);
             expect(parser.parse('  ')).to.deep.include(defaultObject);
