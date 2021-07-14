@@ -1,4 +1,5 @@
-unreleased:
+3.0.2:
+  date: 2021-07-14
   fixed bugs:
     - >-
       GH-130 Fixed a bug where extra slashes and backslashes in the protocol are
