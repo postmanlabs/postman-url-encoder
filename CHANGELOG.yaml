@@ -1,4 +1,8 @@
 unreleased:
+  fixed bugs:
+    - >-
+      GH-130 Fixed a bug where extra slashes and backslashes in the protocol are
+      not handled correctly
   chores:
     - Added secure codecov publish script
     - Updated dependencies

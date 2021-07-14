@@ -705,5 +705,49 @@ describe('.toNodeUrl', function () {
                 hostname: 'postman.com`f.society.org'
             });
         });
+
+        // Refer: https://huntr.dev/bounties/1625732310186-postmanlabs/postman-url-encoder/
+        it('should handle extra backslashes in protocol', function () {
+            expect(toNodeUrl('https:////example.com/foo/bar')).to.include({
+                protocol: 'https:',
+                host: 'example.com',
+                hostname: 'example.com',
+                pathname: '/foo/bar',
+                href: 'https://example.com/foo/bar'
+            });
+
+            expect(toNodeUrl('https:\\\\\\example.com/foo/bar')).to.include({
+                protocol: 'https:',
+                host: 'example.com',
+                hostname: 'example.com',
+                pathname: '/foo/bar',
+                href: 'https://example.com/foo/bar'
+            });
+
+            expect(toNodeUrl('https:///\\example.com/foo/bar')).to.include({
+                protocol: 'https:',
+                host: 'example.com',
+                hostname: 'example.com',
+                pathname: '/foo/bar',
+                href: 'https://example.com/foo/bar'
+            });
+
+            expect(toNodeUrl('////example.com/foo/bar')).to.include({
+                protocol: 'http:',
+                host: 'example.com',
+                hostname: 'example.com',
+                pathname: '/foo/bar',
+                href: 'http://example.com/foo/bar'
+            });
+
+            // eslint-disable-next-line no-useless-escape
+            expect(toNodeUrl('https:/\/\/\example.com/foo/bar')).to.include({
+                protocol: 'https:',
+                host: 'example.com',
+                hostname: 'example.com',
+                pathname: '/foo/bar',
+                href: 'https://example.com/foo/bar'
+            });
+        });
     });
 });
