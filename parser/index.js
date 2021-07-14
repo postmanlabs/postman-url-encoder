@@ -215,6 +215,8 @@ function parse (urlString) {
 
     // 4. url.path
     urlString = urlString.replace(/\\/g, '/'); // sanitize path
+    urlString = urlString.replace(/^\/+/, ''); // remove leading slashes
+
     if ((index = urlString.indexOf(PATH_SEPARATOR)) !== -1) {
         // extract from the back
         url.path.value = urlString.slice(index + 1).split(PATH_SEPARATOR);
