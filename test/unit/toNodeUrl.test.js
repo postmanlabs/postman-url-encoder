@@ -749,5 +749,29 @@ describe('.toNodeUrl', function () {
                 href: 'https://example.com/foo/bar'
             });
         });
+
+        // Refer: https://en.wikipedia.org/wiki/File_URI_scheme#How_many_slashes?
+        it('should handle file://host/path and file:///path', function () {
+            expect(toNodeUrl('file://host/path')).to.include({
+                host: 'host',
+                hostname: 'host',
+                pathname: '/path',
+                href: 'file://host/path'
+            });
+
+            expect(toNodeUrl('file:///path')).to.include({
+                host: '',
+                hostname: '',
+                pathname: '/path',
+                href: 'file:///path'
+            });
+
+            expect(toNodeUrl('file:////foo/bar')).to.include({
+                host: '',
+                hostname: '',
+                pathname: '/foo/bar',
+                href: 'file:///foo/bar'
+            });
+        });
     });
 });

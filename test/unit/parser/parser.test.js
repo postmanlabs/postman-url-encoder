@@ -220,7 +220,7 @@ describe('parser', function () {
             });
         });
 
-        it('should handle handle protocol with backslashes', function () {
+        it('should handle protocol with backslashes', function () {
             expect(parser.parse('http:\\\\localhost')).to.deep.include({
                 raw: 'http:\\\\localhost',
                 protocol: 'http',
@@ -229,11 +229,11 @@ describe('parser', function () {
         });
 
         it('should handle extra slashes after protocol', function () {
-            expect(parser.parse('http:////localhost')).to.deep.include({
-                raw: 'http:////localhost',
+            expect(parser.parse('http:////localhost/foo')).to.deep.include({
+                raw: 'http:////localhost/foo',
                 protocol: 'http',
                 host: ['localhost'],
-                path: undefined
+                path: ['foo']
             });
         });
 
@@ -261,6 +261,33 @@ describe('parser', function () {
                 protocol: undefined,
                 host: ['localhost'],
                 path: ['foo']
+            });
+        });
+
+        it('should handle file://host/foo', function () {
+            expect(parser.parse('file://host/foo')).to.deep.include({
+                raw: 'file://host/foo',
+                protocol: 'file',
+                host: ['host'],
+                path: ['foo']
+            });
+        });
+
+        it('should handle file:///foo/bar', function () {
+            expect(parser.parse('file:///foo/bar')).to.deep.include({
+                raw: 'file:///foo/bar',
+                protocol: 'file',
+                host: undefined,
+                path: ['foo', 'bar']
+            });
+        });
+
+        it('should handle file://///foo/bar', function () {
+            expect(parser.parse('file://///foo/bar')).to.deep.include({
+                raw: 'file://///foo/bar',
+                protocol: 'file',
+                host: undefined,
+                path: ['foo', 'bar']
             });
         });
 
