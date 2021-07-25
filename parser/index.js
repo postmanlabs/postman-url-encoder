@@ -24,7 +24,9 @@
 
 const ReplacementTracker = require('./replacement-tracker'),
 
-    REGEX_EXTRACT_VARS = /{{[^{}]*[.:/?#@&\]][^{}]*}}/g,
+    REGEX_ALL_BACKSLASHES = /\\/g,
+    REGEX_LEADING_SLASHES = /^\/+/,
+    REGEX_ALL_VARIABLES = /{{[^{}]*[.:/?#@&\]][^{}]*}}/g,
 
     HASH_SEPARATOR = '#',
     PATH_SEPARATOR = '/',
@@ -35,8 +37,10 @@ const ReplacementTracker = require('./replacement-tracker'),
     PROTOCOL_SEPARATOR = '://',
     AUTH_SEGMENTS_SEPARATOR = ':',
     QUERY_SEGMENTS_SEPARATOR = '&',
-    PROTOCOL_SEPARATOR_WITH_BACKSLASH = ':\\\\',
 
+    E = '',
+    STRING = 'string',
+    FILE_PROTOCOL = 'file',
     SAFE_REPLACE_CHAR = '_',
     CLOSING_SQUARE_BRACKET = ']',
     URL_PROPERTIES_ORDER = ['protocol', 'auth', 'host', 'port', 'path', 'query', 'hash'];
@@ -52,7 +56,7 @@ const ReplacementTracker = require('./replacement-tracker'),
  * @returns {String} Normalized string
  */
 function normalizeVariables (str, replacements) {
-    let normalizedString = '',
+    let normalizedString = E,
         pointer = 0, // pointer till witch the string is normalized
         variable,
         match,
@@ -61,7 +65,7 @@ function normalizeVariables (str, replacements) {
     // find all the instances of {{<variable>}} which includes reserved chars
     // "Hello {{user#name}}!!!"
     //  ↑ (pointer = 0)
-    while ((match = REGEX_EXTRACT_VARS.exec(str)) !== null) {
+    while ((match = REGEX_ALL_VARIABLES.exec(str)) !== null) {
         // {{user#name}}
         variable = match[0];
 
@@ -154,12 +158,14 @@ function parse (urlString) {
         },
         replacements = new ReplacementTracker(),
         pointer = 0,
+        protocol,
+        _length,
         length,
         index,
         port;
 
     // bail out if input string is empty
-    if (!(urlString && typeof urlString === 'string')) {
+    if (!(urlString && typeof urlString === STRING)) {
         return parsedUrl;
     }
 
@@ -191,9 +197,12 @@ function parse (urlString) {
     }
 
     // 3. url.protocol
+    urlString = urlString.replace(REGEX_ALL_BACKSLASHES, PATH_SEPARATOR); // sanitize slashes
+
+    // @todo support `protocol:host/path` and `protocol:/host/path`
     if ((index = urlString.indexOf(PROTOCOL_SEPARATOR)) !== -1) {
         // extract from the front
-        url.protocol.value = urlString.slice(0, index);
+        url.protocol.value = protocol = urlString.slice(0, index);
         url.protocol.beginIndex = pointer;
         url.protocol.endIndex = pointer + index;
 
@@ -201,22 +210,21 @@ function parse (urlString) {
         length -= index + 3;
         pointer += index + 3;
     }
-    // protocol can be separated using :\\ as well
-    else if ((index = urlString.indexOf(PROTOCOL_SEPARATOR_WITH_BACKSLASH)) !== -1) {
-        // extract from the front
-        url.protocol.value = urlString.slice(0, index);
-        url.protocol.beginIndex = pointer;
-        url.protocol.endIndex = pointer + index;
 
-        urlString = urlString.slice(index + 3);
-        length -= index + 3;
-        pointer += index + 3;
-    }
+    // special handling for leading slashes e.g, http:///example.com
+    _length = length; // length with leading slashes
+
+    urlString = urlString.replace(REGEX_LEADING_SLASHES,
+        (protocol && protocol.toLowerCase() === FILE_PROTOCOL) ?
+            // file:////path -> file:///path
+            PATH_SEPARATOR :
+            // protocol:////host/path -> protocol://host/path
+            E);
+
+    length = urlString.length; // length without slashes
+    pointer += _length - length; // update pointer
 
     // 4. url.path
-    urlString = urlString.replace(/\\/g, '/'); // sanitize path
-    urlString = urlString.replace(/^\/+/, ''); // remove leading slashes
-
     if ((index = urlString.indexOf(PATH_SEPARATOR)) !== -1) {
         // extract from the back
         url.path.value = urlString.slice(index + 1).split(PATH_SEPARATOR);
