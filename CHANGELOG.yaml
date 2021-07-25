@@ -1,4 +1,5 @@
-unreleased:
+3.0.3:
+  date: 2021-07-25
   fixed bugs:
     - >-
       GH-133 Fixed a bug where slashes in the `file` protocol are handled
