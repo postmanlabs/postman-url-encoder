@@ -284,5 +284,94 @@ describe('parser', function () {
             expect(parser.parse(1234)).to.deep.include(defaultObject);
             expect(parser.parse({})).to.deep.include(defaultObject);
         });
+
+        describe('with partial segments', function () {
+            function testPartials (fixtures) {
+                fixtures.forEach(([test, result]) => {
+                    expect(parser.parse(test), `"${test}"`).to.deep.include({
+                        ...defaultObject,
+                        ...result
+                    });
+                });
+            }
+
+            it('should detect partial `url.hash`', function () {
+                testPartials([
+                    ['#', { hash: '' }],
+                    ['#foo', { hash: 'foo' }],
+                    ['#foo#bar', { hash: 'foo#bar' }]
+                ]);
+            });
+
+            it('should detect partial `url.query`', function () {
+                testPartials([
+                    ['?', { query: [''] }],
+                    ['??', { query: ['?'] }],
+                    ['?foo', { query: ['foo'] }],
+                    ['?foo=bar', { query: ['foo=bar'] }],
+                    ['?foo&bar', { query: ['foo', 'bar'] }],
+                    ['?foo&bar?baz', { query: ['foo', 'bar?baz'] }]
+                ]);
+            });
+
+            it('should detect partial `url.protocol`', function () {
+                testPartials([
+                    ['://', { protocol: '' }],
+                    [':\\\\', { protocol: '' }],
+                    ['http://', { protocol: 'http' }],
+                    ['file://', { protocol: 'file' }],
+                    ['http:\\\\', { protocol: 'http' }],
+                    ['https://///', { protocol: 'https' }],
+                    ['https:\\\\\\\\', { protocol: 'https' }],
+                    ['file:///', { protocol: 'file', path: [''] }],
+                    ['file://////', { protocol: 'file', path: [''] }]
+                ]);
+            });
+
+            it('should detect partial `url.path`', function () {
+                testPartials([
+                    ['/', { path: [''] }],
+                    ['\\', { path: [''] }],
+                    ['/foo', { path: ['foo'] }],
+                    ['//foo', { path: ['', 'foo'] }],
+                    ['/foo//', { path: ['foo', '', ''] }],
+                    ['/foo/bar', { path: ['foo', 'bar'] }],
+                    ['\\\\foo/\\', { path: ['', 'foo', '', ''] }]
+                ]);
+            });
+
+            it('should detect partial `url.auth`', function () {
+                testPartials([
+                    ['@', { auth: [''] }],
+                    [':@', { auth: ['', ''] }],
+                    ['foo@', { auth: ['foo'] }],
+                    ['foo:@', { auth: ['foo', ''] }],
+                    [':bar@', { auth: ['', 'bar'] }],
+                    ['foo:bar@', { auth: ['foo', 'bar'] }]
+                ]);
+            });
+
+            it('should detect partial `url.port`', function () {
+                testPartials([
+                    [':', { port: '' }],
+                    [':3000', { port: '3000' }],
+                    ['foo:', { port: '', host: ['foo'] }],
+                    ['::3000', { port: '3000', host: [':'] }],
+                    [':foo:bar', { port: 'bar', host: [':foo'] }]
+                ]);
+            });
+
+            it('should detect partial `url.host`', function () {
+                testPartials([
+                    ['.', { host: ['', ''] }],
+                    ['..', { host: ['', '', ''] }],
+                    ['..foo', { host: ['', '', 'foo'] }],
+                    ['foo..', { host: ['foo', '', ''] }],
+                    ['localhost', { host: ['localhost'] }],
+                    ['local.host', { host: ['local', 'host'] }],
+                    ['local..host', { host: ['local', '', 'host'] }]
+                ]);
+            });
+        });
     });
 });
