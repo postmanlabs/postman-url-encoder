@@ -44,7 +44,7 @@
  * @see {@link https://tools.ietf.org/html/rfc3986#section-3}
  */
 
-const url = require('url'),
+const domainToASCII = require('url').domainToASCII,
 
     encodeSet = require('./encode-set'),
 
@@ -69,38 +69,7 @@ const url = require('url'),
     OBJECT = 'object',
 
     PATH_SEPARATOR = '/',
-    DOMAIN_SEPARATOR = '.',
-
-    /**
-     * Returns the Punycode ASCII serialization of the domain.
-     *
-     * @note `url.domainToASCII` returns empty string for invalid domain.
-     *
-     * @todo Remove `punycode` dependency on Node version >= 6.13.0.
-     *  For backward compatibility, fallback to `punycode` as url.domainToASCII.
-     *
-     * @private
-     * @function
-     * @param {String} domain domain name
-     * @returns {String} punycode encoded domain name
-     */
-    domainToASCII = (function () {
-        const domainToASCII = url.domainToASCII;
-
-        // @note In Electron v3.1.8, the Node.js native url.domainToASCII
-        // doesn't work as expected. ¯\_(ツ)_/¯
-        // so, check if it convert's '😎' to 'xn--s28h' or not.
-        // @todo Remove this hack on Electron >= 4
-        /* istanbul ignore next */
-        if (typeof domainToASCII === 'function' && domainToASCII('😎') === 'xn--s28h') {
-            // use faster native method
-            return domainToASCII;
-        }
-
-        // else, lazy load `punycode` dependency
-        /* istanbul ignore next */
-        return require('punycode').toASCII;
-    }());
+    DOMAIN_SEPARATOR = '.';
 
 /**
  * Returns the Punycode ASCII serialization of the domain.

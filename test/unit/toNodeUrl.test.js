@@ -732,14 +732,6 @@ describe('.toNodeUrl', function () {
                 href: 'https://example.com/foo/bar'
             });
 
-            expect(toNodeUrl('////example.com/foo/bar')).to.include({
-                protocol: 'http:',
-                host: 'example.com',
-                hostname: 'example.com',
-                pathname: '/foo/bar',
-                href: 'http://example.com/foo/bar'
-            });
-
             // eslint-disable-next-line no-useless-escape
             expect(toNodeUrl('https:/\/\/\example.com/foo/bar')).to.include({
                 protocol: 'https:',

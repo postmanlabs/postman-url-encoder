@@ -1,3 +1,11 @@
+3.0.4:
+  date: 2021-08-09
+  fixed bugs:
+    - Fixed a bug where leading slashes are trimmed incorrectly
+  chores:
+    - Removed punycode fallback for Electron v3
+    - Updated dependencies
+
 3.0.3:
   date: 2021-07-25
   fixed bugs:
