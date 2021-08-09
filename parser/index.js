@@ -158,7 +158,6 @@ function parse (urlString) {
         },
         replacements = new ReplacementTracker(),
         pointer = 0,
-        protocol,
         _length,
         length,
         index,
@@ -202,27 +201,27 @@ function parse (urlString) {
     // @todo support `protocol:host/path` and `protocol:/host/path`
     if ((index = urlString.indexOf(PROTOCOL_SEPARATOR)) !== -1) {
         // extract from the front
-        url.protocol.value = protocol = urlString.slice(0, index);
+        url.protocol.value = urlString.slice(0, index);
         url.protocol.beginIndex = pointer;
         url.protocol.endIndex = pointer + index;
 
         urlString = urlString.slice(index + 3);
         length -= index + 3;
         pointer += index + 3;
+
+        // special handling for extra slashes in protocol e.g, http:///example.com
+        _length = length; // length with leading slashes
+
+        urlString = urlString.replace(REGEX_LEADING_SLASHES,
+            (url.protocol.value.toLowerCase() === FILE_PROTOCOL) ?
+                // file:////path -> file:///path
+                PATH_SEPARATOR :
+                // protocol:////host/path -> protocol://host/path
+                E);
+
+        length = urlString.length; // length without slashes
+        pointer += _length - length; // update pointer
     }
-
-    // special handling for leading slashes e.g, http:///example.com
-    _length = length; // length with leading slashes
-
-    urlString = urlString.replace(REGEX_LEADING_SLASHES,
-        (protocol && protocol.toLowerCase() === FILE_PROTOCOL) ?
-            // file:////path -> file:///path
-            PATH_SEPARATOR :
-            // protocol:////host/path -> protocol://host/path
-            E);
-
-    length = urlString.length; // length without slashes
-    pointer += _length - length; // update pointer
 
     // 4. url.path
     if ((index = urlString.indexOf(PATH_SEPARATOR)) !== -1) {

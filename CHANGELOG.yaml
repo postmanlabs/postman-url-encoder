@@ -1,4 +1,6 @@
 unreleased:
+  fixed bugs:
+    - Fixed a bug where leading slashes are trimmed incorrectly
   chores:
     - Removed punycode fallback for Electron v3
 

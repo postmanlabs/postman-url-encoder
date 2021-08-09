@@ -246,24 +246,6 @@ describe('parser', function () {
             });
         });
 
-        it('should handle leading slashes', function () {
-            expect(parser.parse('//localhost/foo')).to.deep.include({
-                raw: '//localhost/foo',
-                protocol: undefined,
-                host: ['localhost'],
-                path: ['foo']
-            });
-        });
-
-        it('should handle leading backslashes', function () {
-            expect(parser.parse('\\\\localhost\\foo')).to.deep.include({
-                raw: '\\\\localhost\\foo',
-                protocol: undefined,
-                host: ['localhost'],
-                path: ['foo']
-            });
-        });
-
         it('should handle file://host/foo', function () {
             expect(parser.parse('file://host/foo')).to.deep.include({
                 raw: 'file://host/foo',
