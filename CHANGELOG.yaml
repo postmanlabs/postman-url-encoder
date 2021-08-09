@@ -1,3 +1,7 @@
+unreleased:
+  chores:
+    - Removed punycode fallback for Electron v3
+
 3.0.3:
   date: 2021-07-25
   fixed bugs:
