@@ -26,7 +26,7 @@ describe('.toNodeUrl', function () {
             });
     });
 
-    it('should accept url as PostmanUrl', function () {
+    (typeof window === 'undefined' ? it : it.skip)('should accept url as PostmanUrl', function () {
         var url = new PostmanUrl({
             host: '127.1',
             protocol: 'postman',
@@ -53,7 +53,8 @@ describe('.toNodeUrl', function () {
         });
     });
 
-    it('should return same result for string url and PostmanUrl', function () {
+    // eslint-disable-next-line max-len
+    (typeof window === 'undefined' ? it : it.skip)('should return same result for string url and PostmanUrl', function () {
         var testCases = fs.readFileSync(path.join(__dirname, '../fixtures/urlList.csv'));
 
         testCases = parseCsv(testCases, {
@@ -356,7 +357,7 @@ describe('.toNodeUrl', function () {
                 });
             });
 
-            it('should handle the IP address shorthands', function () {
+            (typeof window === 'undefined' ? it : it.skip)('should handle the IP address shorthands', function () {
                 expect(toNodeUrl('0')).to.include({
                     host: '0.0.0.0',
                     hostname: '0.0.0.0'
@@ -399,7 +400,7 @@ describe('.toNodeUrl', function () {
                 });
             });
 
-            it('should handle invalid hostname', function () {
+            (typeof window === 'undefined' ? it : it.skip)('should handle invalid hostname', function () {
                 expect(toNodeUrl('xn:')).to.include({
                     host: 'xn:',
                     hostname: 'xn'
@@ -699,7 +700,7 @@ describe('.toNodeUrl', function () {
 
         // eslint-disable-next-line max-len
         // Refer: https://docs.google.com/presentation/d/e/2PACX-1vSTFsJ9t0DatXbjmEGL8sKxt53gf6a1djHp_8Wbj2ZeTB6IfR-HsRD537-L5PgzVrs97bJu1tzJ1Smo/pub?slide=id.g32d0ed6ec2_0_45
-        it('should handle encoded hostname', function () {
+        (typeof window === 'undefined' ? it : it.skip)('should handle encoded hostname', function () {
             expect(toNodeUrl('postman.com%60f.society.org')).to.include({
                 host: 'postman.com`f.society.org',
                 hostname: 'postman.com`f.society.org'

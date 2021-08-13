@@ -10,14 +10,14 @@ describe('encoder', function () {
             expect(encoder.encodeHost('郵便屋さん.com')).to.equal('xn--48jwgn17gdel797d.com');
         });
 
-        it('should handle the IP address shorthands', function () {
+        (typeof window === 'undefined' ? it : it.skip)('should handle the IP address shorthands', function () {
             expect(encoder.encodeHost('0')).to.equal('0.0.0.0');
             expect(encoder.encodeHost('1234')).to.equal('0.0.4.210');
             expect(encoder.encodeHost('127.1')).to.equal('127.0.0.1');
             expect(encoder.encodeHost('255.255.255')).to.equal('255.255.0.255');
         });
 
-        it('should accept hostname as an array', function () {
+        (typeof window === 'undefined' ? it : it.skip)('should accept hostname as an array', function () {
             expect(encoder.encodeHost([8, 8])).to.equal('8.0.0.8');
             expect(encoder.encodeHost(['🍪', 'example', 'com'])).to.equal('xn--hj8h.example.com');
         });
@@ -27,7 +27,7 @@ describe('encoder', function () {
             expect(encoder.encodeHost('255.255.255.0')).to.equal('255.255.255.0');
         });
 
-        it('should return input value on invalid domain', function () {
+        (typeof window === 'undefined' ? it : it.skip)('should return input value on invalid domain', function () {
             expect(encoder.encodeHost('xn:')).to.equal('xn:');
             expect(encoder.encodeHost('example#com')).to.equal('example#com');
             expect(encoder.encodeHost('99999999999')).to.equal('99999999999');

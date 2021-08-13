@@ -1,6 +1,8 @@
 unreleased:
   fixed bugs:
     - Fixed a bug where `encoder.encodeHost` throws in the browser
+  chores:
+    - Setup browser tests
 
 3.0.4:
   date: 2021-08-09
