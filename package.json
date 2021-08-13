@@ -30,6 +30,9 @@
     "test-system": "node npm/test-system.js",
     "test-unit": "nyc --nycrc-path=.nycrc.js node npm/test-unit.js"
   },
+  "dependencies": {
+    "punycode": "^2.1.1"
+  },
   "devDependencies": {
     "@postman/csv-parse": "^4.0.2",
     "@postman/shipit": "^0.3.0",
