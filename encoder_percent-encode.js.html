@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>encoder/percent-encode.js - Postman Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home 3.0.5</a></h2><h3>Classes</h3><ul><li><a href="EncodeSet.html">EncodeSet</a><ul class='methods'><li data-type='method'><a href="EncodeSet.html#.extend">extend</a></li><li data-type='method'><a href="EncodeSet.html#.isEncodeSet">isEncodeSet</a></li><li data-type='method'><a href="EncodeSet.html#add">add</a></li><li data-type='method'><a href="EncodeSet.html#clone">clone</a></li><li data-type='method'><a href="EncodeSet.html#has">has</a></li><li data-type='method'><a href="EncodeSet.html#seal">seal</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-postman-url-encoder.html">postman-url-encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder.html#~encode">encode</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~encodeQueryString">encodeQueryString</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~resolveNodeUrl">resolveNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toLegacyNodeUrl">toLegacyNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toNodeUrl">toNodeUrl</a></li></ul></li><li><a href="module-postman-url-encoder_encoder.html">postman-url-encoder/encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeFragment">encodeFragment</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeHost">encodeHost</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodePath">encodePath</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParam">encodeQueryParam</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParams">encodeQueryParams</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeUserInfo">encodeUserInfo</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncode">percentEncode</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncodeCharCode">percentEncodeCharCode</a></li></ul></li><li><a href="module-postman-url-encoder_parser.html">postman-url-encoder/parser</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_parser.html#~parse">parse</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#C0_CONTROL_ENCODE_SET">C0_CONTROL_ENCODE_SET</a></li><li><a href="global.html#FRAGMENT_ENCODE_SET">FRAGMENT_ENCODE_SET</a></li><li><a href="global.html#PATH_ENCODE_SET">PATH_ENCODE_SET</a></li><li><a href="global.html#QUERY_ENCODE_SET">QUERY_ENCODE_SET</a></li><li><a href="global.html#USERINFO_ENCODE_SET">USERINFO_ENCODE_SET</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">encoder/percent-encode.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * This modules provides simple percent (URI) encoding.
+ *
+ * @note Safety check for input types is not done intentionally as these
+ * functions are invoked in the hot code path.
+ *
+ * @private
+ * @module postman-url-encoder/encoder/percent-encode
+ */
+
+/**
+ * @fileoverview
+ * A percent-encoding mechanism is used to represent a data octet in a component
+ * when that octet's corresponding character is outside the allowed set or is
+ * being used as a delimiter of, or within, the component.
+ * A percent-encoded octet is encoded as a character triplet, consisting of the
+ * percent character "%" followed by the two hexadecimal digits representing
+ * that octet's numeric value.
+ *
+ * For example, "%20" is the percent-encoding for the binary octet "00100000"
+ * (ABNF: %x20), which in US-ASCII corresponds to the space character (SP).
+ *
+ * @see {@link https://en.wikipedia.org/wiki/Percent-encoding}
+ * @see {@link https://tools.ietf.org/html/rfc3986#section-2.1}
+ */
+
+const E = '',
+    ZERO = '0',
+    PERCENT = '%';
+
+/**
+ * Checks if character with given code is valid hexadecimal digit or not.
+ *
+ * @private
+ * @param {Number} byte Byte
+ * @returns {Boolean}
+ */
+function isPreEncodedCharacter (byte) {
+    return (byte >= 0x30 &amp;&amp; byte &lt;= 0x39) || // 0-9
+        (byte >= 0x41 &amp;&amp; byte &lt;= 0x46) || // A-F
+        (byte >= 0x61 &amp;&amp; byte &lt;= 0x66); // a-f
+}
+
+/**
+ * Checks if character at given index in the buffer is already percent encoded or not.
+ *
+ * @private
+ * @param {Buffer} buffer Buffer to check the character from
+ * @param {Number} i Index of the character to check
+ * @returns {Boolean} true if the character is encoded, false otherwise
+ */
+function isPreEncoded (buffer, i) {
+    // if it is % check next two bytes for percent encode characters
+    // looking for pattern %00 - %FF
+    return buffer[i] === 0x25 &amp;&amp; // %
+        isPreEncodedCharacter(buffer[i + 1]) &amp;&amp;
+        isPreEncodedCharacter(buffer[i + 2]);
+}
+
+/**
+ * Percent encode a character with given code.
+ *
+ * @example
+ * // returns '%20'
+ * encodeCharCode(32)
+ *
+ * @param {Number} code Character code
+ * @returns {String} Percent-encoded character
+ */
+function encodeCharCode (code) {
+    let hex = code.toString(16).toUpperCase();
+
+    (hex.length === 1) &amp;&amp; (hex = ZERO + hex);
+
+    return PERCENT + hex;
+}
+
+/**
+ * Percent-encode the given string with the given {@link EncodeSet}.
+ *
+ * @example
+ * // returns 'foo%40bar'
+ * encode('foo@bar', new EncodeSet(['@']))
+ *
+ * @param {String} value String to percent-encode
+ * @param {EncodeSet} encodeSet EncodeSet to use for encoding
+ * @returns {String} Percent-encoded string
+ */
+function encode (value, encodeSet) {
+    let i,
+        ii,
+        charCode,
+        encoded = E,
+        buffer = Buffer.from(value);
+
+    for (i = 0, ii = buffer.length; i &lt; ii; ++i) {
+        // avoid double encoding
+        if (i &lt; ii - 2 &amp;&amp; isPreEncoded(buffer, i)) {
+            encoded += PERCENT + String.fromCharCode(buffer[++i], buffer[++i]);
+            continue;
+        }
+
+        charCode = buffer[i];
+
+        encoded += encodeSet.has(charCode) ?
+            // encode if char code present in encodeSet
+            encodeCharCode(charCode) :
+            // or, append string from char code
+            String.fromCharCode(charCode);
+    }
+
+    return encoded;
+}
+
+module.exports = {
+    encode,
+    encodeCharCode
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated at Mon Aug 16 2021 05:52:58 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

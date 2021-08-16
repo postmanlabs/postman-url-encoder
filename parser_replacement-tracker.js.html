@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>parser/replacement-tracker.js - Postman Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home 3.0.5</a></h2><h3>Classes</h3><ul><li><a href="EncodeSet.html">EncodeSet</a><ul class='methods'><li data-type='method'><a href="EncodeSet.html#.extend">extend</a></li><li data-type='method'><a href="EncodeSet.html#.isEncodeSet">isEncodeSet</a></li><li data-type='method'><a href="EncodeSet.html#add">add</a></li><li data-type='method'><a href="EncodeSet.html#clone">clone</a></li><li data-type='method'><a href="EncodeSet.html#has">has</a></li><li data-type='method'><a href="EncodeSet.html#seal">seal</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-postman-url-encoder.html">postman-url-encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder.html#~encode">encode</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~encodeQueryString">encodeQueryString</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~resolveNodeUrl">resolveNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toLegacyNodeUrl">toLegacyNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toNodeUrl">toNodeUrl</a></li></ul></li><li><a href="module-postman-url-encoder_encoder.html">postman-url-encoder/encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeFragment">encodeFragment</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeHost">encodeHost</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodePath">encodePath</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParam">encodeQueryParam</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParams">encodeQueryParams</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeUserInfo">encodeUserInfo</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncode">percentEncode</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncodeCharCode">percentEncodeCharCode</a></li></ul></li><li><a href="module-postman-url-encoder_parser.html">postman-url-encoder/parser</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_parser.html#~parse">parse</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#C0_CONTROL_ENCODE_SET">C0_CONTROL_ENCODE_SET</a></li><li><a href="global.html#FRAGMENT_ENCODE_SET">FRAGMENT_ENCODE_SET</a></li><li><a href="global.html#PATH_ENCODE_SET">PATH_ENCODE_SET</a></li><li><a href="global.html#QUERY_ENCODE_SET">QUERY_ENCODE_SET</a></li><li><a href="global.html#USERINFO_ENCODE_SET">USERINFO_ENCODE_SET</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">parser/replacement-tracker.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/**
+ * Tracks replacements done on a string and expose utility to patch replacements.
+ *
+ * @note due to performance reasons, it doesn't store the original string or
+ * perform ops on the string.
+ *
+ * @private
+ * @constructor
+ */
+class ReplacementTracker {
+    constructor () {
+        this.replacements = [];
+        this._offset = 0;
+        this._length = 0;
+    }
+
+    /**
+     * Add new replacement to track.
+     *
+     * @param {String} value -
+     * @param {Number} index -
+     */
+    add (value, index) {
+        this.replacements.push({
+            value: value,
+            index: index - this._offset
+        });
+
+        this._offset += value.length - 1; // - 1 replaced character
+        this._length++;
+    }
+
+    /**
+     * Returns the total number of replacements.
+     *
+     * @returns {Number}
+     */
+    count () {
+        return this._length;
+    }
+
+    /**
+     * Finds the lower index of replacement position for a given value using inexact
+     * binary search.
+     *
+     * @private
+     * @param {Number} index -
+     * @returns {Number}
+     */
+    _findLowerIndex (index) {
+        let length = this.count(),
+            start = 0,
+            end = length - 1,
+            mid;
+
+        while (start &lt;= end) {
+            mid = (start + end) >> 1; // divide by 2
+
+            if (this.replacements[mid].index >= index) {
+                end = mid - 1;
+            }
+            else {
+                start = mid + 1;
+            }
+        }
+
+        return start >= length ? -1 : start;
+    }
+
+    /**
+     * Patches a given string by apply all the applicable replacements done in the
+     * given range.
+     *
+     * @private
+     * @param {String} input -
+     * @param {Number} beginIndex -
+     * @param {Number} endIndex -
+     * @returns {String}
+     */
+    _applyInString (input, beginIndex, endIndex) {
+        let index,
+            replacement,
+            replacementIndex,
+            replacementValue,
+            offset = 0,
+            length = this.count();
+
+        // bail out if no replacements are done in the given range OR empty string
+        if (!input || (index = this._findLowerIndex(beginIndex)) === -1) {
+            return input;
+        }
+
+        do {
+            replacement = this.replacements[index];
+            replacementIndex = replacement.index;
+            replacementValue = replacement.value;
+
+            // bail out if all the replacements are done in the given range
+            if (replacementIndex >= endIndex) {
+                break;
+            }
+
+            replacementIndex = offset + replacementIndex - beginIndex;
+            input = input.slice(0, replacementIndex) + replacementValue + input.slice(replacementIndex + 1);
+            offset += replacementValue.length - 1;
+        } while (++index &lt; length);
+
+        return input;
+    }
+
+    /**
+     * Patches a given string or array of strings by apply all the applicable
+     * replacements done in the given range.
+     *
+     * @param {String|String[]} input -
+     * @param {Number} beginIndex -
+     * @param {Number} endIndex -
+     * @returns {String|String[]}
+     */
+    apply (input, beginIndex, endIndex) {
+        let i,
+            ii,
+            length,
+            _endIndex,
+            _beginIndex,
+            value = input;
+
+        // apply replacements in string
+        if (typeof input === 'string') {
+            return this._applyInString(input, beginIndex, endIndex);
+        }
+
+        // apply replacements in the splitted string (Array)
+        _beginIndex = beginIndex;
+
+        // traverse all the segments until all the replacements are patched
+        for (i = 0, ii = input.length; i &lt; ii; ++i) {
+            value = input[i];
+            _endIndex = _beginIndex + (length = value.length);
+
+            // apply replacements applicable for individual segment
+            input[i] = this._applyInString(value, _beginIndex, _endIndex);
+            _beginIndex += length + 1; // + 1 separator
+        }
+
+        return input;
+    }
+}
+
+module.exports = ReplacementTracker;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated at Mon Aug 16 2021 05:52:58 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

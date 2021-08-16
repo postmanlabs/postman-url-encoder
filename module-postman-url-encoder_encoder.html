@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>postman-url-encoder/encoder - Postman Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home 3.0.5</a></h2><h3>Classes</h3><ul><li><a href="EncodeSet.html">EncodeSet</a><ul class='methods'><li data-type='method'><a href="EncodeSet.html#.extend">extend</a></li><li data-type='method'><a href="EncodeSet.html#.isEncodeSet">isEncodeSet</a></li><li data-type='method'><a href="EncodeSet.html#add">add</a></li><li data-type='method'><a href="EncodeSet.html#clone">clone</a></li><li data-type='method'><a href="EncodeSet.html#has">has</a></li><li data-type='method'><a href="EncodeSet.html#seal">seal</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-postman-url-encoder.html">postman-url-encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder.html#~encode">encode</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~encodeQueryString">encodeQueryString</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~resolveNodeUrl">resolveNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toLegacyNodeUrl">toLegacyNodeUrl</a></li><li data-type='method'><a href="module-postman-url-encoder.html#~toNodeUrl">toNodeUrl</a></li></ul></li><li><a href="module-postman-url-encoder_encoder.html">postman-url-encoder/encoder</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeFragment">encodeFragment</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeHost">encodeHost</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodePath">encodePath</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParam">encodeQueryParam</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeQueryParams">encodeQueryParams</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~encodeUserInfo">encodeUserInfo</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncode">percentEncode</a></li><li data-type='method'><a href="module-postman-url-encoder_encoder.html#~percentEncodeCharCode">percentEncodeCharCode</a></li></ul></li><li><a href="module-postman-url-encoder_parser.html">postman-url-encoder/parser</a><ul class='methods'><li data-type='method'><a href="module-postman-url-encoder_parser.html#~parse">parse</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#C0_CONTROL_ENCODE_SET">C0_CONTROL_ENCODE_SET</a></li><li><a href="global.html#FRAGMENT_ENCODE_SET">FRAGMENT_ENCODE_SET</a></li><li><a href="global.html#PATH_ENCODE_SET">PATH_ENCODE_SET</a></li><li><a href="global.html#QUERY_ENCODE_SET">QUERY_ENCODE_SET</a></li><li><a href="global.html#USERINFO_ENCODE_SET">USERINFO_ENCODE_SET</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">postman-url-encoder/encoder</h1>
+    
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>This module helps to encode different URL components and expose utility
+methods to percent-encode a given string using an <a href="EncodeSet.html">EncodeSet</a>.</p></div>
+        
+
+        
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://url.spec.whatwg.org/#url-representation">https://url.spec.whatwg.org/#url-representation</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Examples</h5>
+    
+    <pre class="prettyprint"><code>const encoder = require('postman-url-encoder/encoder')
+
+// returns 'xn--48jwgn17gdel797d.com'
+encoder.encodeHost('郵便屋さん.com')</code></pre>
+
+        <p class="code-caption">Using EncodeSet</p>
+    
+    <pre class="prettyprint"><code>var EncodeSet = require('postman-url-encoder/encoder').EncodeSet
+
+var fragmentEncodeSet = new EncodeSet([' ', '"', '&lt;', '>', '`'])
+
+// returns false
+fragmentEncodeSet.has('['.charCodeAt(0))
+
+// returns true
+fragmentEncodeSet.has('&lt;'.charCodeAt(0))</code></pre>
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".EncodeSet"><span class="type-signature">(static) </span>EncodeSet<span class="type-signature"> :<a href="EncodeSet.html">EncodeSet</a></span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="EncodeSet.html">EncodeSet</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line361">line 361</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodeFragment"><span class="type-signature">(inner) </span>encodeFragment<span class="signature">(fragment)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encodes URL fragment identifier or hash.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fragment</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Hash or fragment identifier to encode</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line182">line 182</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded fragment</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'fragment#%20%22%3C%3E%60'
+encodeHash('fragment# "&lt;>`')</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodeHost"><span class="type-signature">(inner) </span>encodeHost<span class="signature">(hostName)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Returns the Punycode ASCII serialization of the domain.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>hostName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>host or domain name</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line116">line 116</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Punycode-encoded hostname</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'xn--fiq228c.com'
+encodeHost('中文.com')
+
+// returns 'xn--48jwgn17gdel797d.com'
+encodeHost(['郵便屋さん', 'com'])
+
+// returns '127.0.0.1'
+encodeHost('127.1')
+
+// returns 'xn--iñvalid.com'
+encodeHost('xn--iñvalid.com')</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodePath"><span class="type-signature">(inner) </span>encodePath<span class="signature">(path)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encodes URL path or individual path segments.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>path</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Path or path segments</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line142">line 142</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded path</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'foo/bar&amp;baz'
+encodePath('foo/bar&amp;baz')
+
+// returns 'foo/bar/%20%22%3C%3E%60%23%3F%7B%7D'
+encodePath(['foo', 'bar', ' "&lt;>\`#?{}'])</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodeQueryParam"><span class="type-signature">(inner) </span>encodeQueryParam<span class="signature">(param)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encodes single query parameter and returns as a string.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>param</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Query param to encode</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line203">line 203</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded query param</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'param%20%22%23%27%3C%3E'
+encodeQueryParam('param "#\'&lt;>')
+
+// returns 'foo=bar'
+encodeQueryParam({ key: 'foo', value: 'bar' })</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodeQueryParams"><span class="type-signature">(inner) </span>encodeQueryParams<span class="signature">(params)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encodes list of query parameters and returns encoded query string.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">Array.&lt;Object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Query params to encode</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line243">line 243</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded query string</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'foo=bar&amp;=foo%26bar'
+encodeQueryParams([{ key: 'foo', value: 'bar' }, { value: 'foo&amp;bar' }])
+
+// returns 'q1=foo&amp;q2=bar&amp;q2=baz'
+encodeQueryParams({ q1: 'foo', q2: ['bar', 'baz'] })</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~encodeUserInfo"><span class="type-signature">(inner) </span>encodeUserInfo<span class="signature">(param)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encodes URL userinfo (username / password) fields.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>param</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Parameter to encode</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line164">line 164</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded parameter</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns 'info~%20%22%3C%3E%60%23%3F%7B%7D%2F%3A%3B%3D%40%5B%5C%5D%5E%7C'
+encodeAuth('info~ "&lt;>`#?{}/:;=@[\\]^|')</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~percentEncode"><span class="type-signature">(inner) </span>percentEncode<span class="signature">(value, encodeSet<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Percent-encode the given string with the given <a href="EncodeSet.html">EncodeSet</a>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>String to percent-encode</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>encodeSet</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="EncodeSet.html">EncodeSet</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    C0_CONTROL_ENCODE_SET
+                
+                </td>
+            
+
+            <td class="description last"><p>EncodeSet to use for encoding</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line319">line 319</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded string</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Examples</h5>
+    
+        <p class="code-caption">Defaults to C0_CONTROL_ENCODE_SET</p>
+    
+    <pre class="prettyprint"><code>// returns 'foo %00 bar'
+percentEncode('foo \u0000 bar')</code></pre>
+
+        <p class="code-caption">Encode literal @ using custom EncodeSet</p>
+    
+    <pre class="prettyprint"><code>// returns 'foo%40bar'
+percentEncode('foo@bar', new EncodeSet(['@']))</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~percentEncodeCharCode"><span class="type-signature">(inner) </span>percentEncodeCharCode<span class="signature">(code)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Percent encode a character with given code.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>code</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Character code</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="encoder_index.js.html">encoder/index.js</a>, <a href="encoder_index.js.html#line342">line 342</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Percent-encoded character</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// returns '%20'
+percentEncodeCharCode(32)</code></pre>
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated at Mon Aug 16 2021 05:52:58 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
