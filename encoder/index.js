@@ -44,9 +44,7 @@
  * @see {@link https://tools.ietf.org/html/rfc3986#section-3}
  */
 
-const domainToASCII = require('url').domainToASCII,
-
-    encodeSet = require('./encode-set'),
+const encodeSet = require('./encode-set'),
 
     _percentEncode = require('./percent-encode').encode,
     _percentEncodeCharCode = require('./percent-encode').encodeCharCode,
@@ -69,7 +67,30 @@ const domainToASCII = require('url').domainToASCII,
     OBJECT = 'object',
 
     PATH_SEPARATOR = '/',
-    DOMAIN_SEPARATOR = '.';
+    DOMAIN_SEPARATOR = '.',
+
+    /**
+     * Returns the Punycode ASCII serialization of the domain.
+     *
+     * @private
+     * @function
+     * @param {String} domain domain name
+     * @returns {String} punycode encoded domain name
+     */
+    domainToASCII = (function () {
+        // @note `url.domainToASCII` returns empty string for invalid domain.
+        const domainToASCII = require('url').domainToASCII;
+
+        // use faster native `url` method in Node.js
+        /* istanbul ignore next */
+        if (typeof domainToASCII === 'function') {
+            return domainToASCII;
+        }
+
+        // else, lazy load `punycode` dependency in browser
+        /* istanbul ignore next */
+        return require('punycode').toASCII;
+    }());
 
 /**
  * Returns the Punycode ASCII serialization of the domain.
