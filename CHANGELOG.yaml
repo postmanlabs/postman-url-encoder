@@ -1,3 +1,9 @@
+unreleased:
+  fixed bugs:
+    - GH-284 Fixed variable replacement RegEx
+  chores:
+    - Updated dependencies
+
 3.0.5:
   date: 2021-08-16
   fixed bugs:
