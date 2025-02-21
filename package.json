@@ -1,6 +1,6 @@
 {
   "name": "postman-url-encoder",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "Implementation of the WHATWG URL Standard",
   "author": "Postman Inc.",
   "license": "Apache-2.0",
@@ -32,14 +32,14 @@
     "test-unit": "nyc --nycrc-path=.nycrc.js node npm/test-unit.js"
   },
   "dependencies": {
-    "punycode": "^2.1.1"
+    "punycode": "^2.3.1"
   },
   "devDependencies": {
     "@postman/csv-parse": "^4.0.2",
-    "@postman/shipit": "^0.3.0",
-    "async": "^3.2.1",
+    "@postman/shipit": "^0.4.0",
+    "async": "^3.2.6",
     "bipbip": "^0.4.2",
-    "browserify": "^17.0.0",
+    "browserify": "^17.0.1",
     "chai": "^4.3.4",
     "chalk": "^4.1.2",
     "colors": "^1.4.0",
@@ -50,18 +50,18 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-security": "^1.4.0",
     "jsdoc": "^3.6.7",
-    "karma": "^6.3.4",
+    "karma": "^6.4.4",
     "karma-browserify": "^8.1.0",
-    "karma-chrome-launcher": "^3.1.0",
+    "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^9.0.3",
     "nyc": "^15.1.0",
     "parse-gitignore": "^1.0.1",
-    "postman-collection": "^4.0.2",
+    "postman-collection": "^4.5.0",
     "postman-jsdoc-theme": "^0.0.3",
-    "recursive-readdir": "^2.2.2",
-    "shelljs": "^0.8.3",
+    "recursive-readdir": "^2.2.3",
+    "shelljs": "^0.8.5",
     "watchify": "^4.0.0"
   },
   "engines": {
