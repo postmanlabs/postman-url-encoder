@@ -1,4 +1,5 @@
-unreleased:
+3.0.6:
+  date: 2025-02-21
   fixed bugs:
     - GH-284 Fixed variable replacement RegEx
   chores:
