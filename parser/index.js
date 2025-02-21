@@ -26,7 +26,7 @@ const ReplacementTracker = require('./replacement-tracker'),
 
     REGEX_ALL_BACKSLASHES = /\\/g,
     REGEX_LEADING_SLASHES = /^\/+/,
-    REGEX_ALL_VARIABLES = /{{[^{}]*[.:/?#@&\]][^{}]*}}/g,
+    REGEX_ALL_VARIABLES = /{{[^{}]*}}/g,
 
     HASH_SEPARATOR = '#',
     PATH_SEPARATOR = '/',
