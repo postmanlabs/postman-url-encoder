@@ -1,4 +1,5 @@
-unreleased:
+3.0.7:
+  date: 2025-03-27
   fixed bugs:
     - Used userland `punycode` module
 
