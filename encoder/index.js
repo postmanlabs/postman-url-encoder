@@ -89,7 +89,7 @@ const encodeSet = require('./encode-set'),
 
         // else, lazy load `punycode` dependency in browser
         /* istanbul ignore next */
-        return require('punycode').toASCII;
+        return require('punycode/').toASCII;
     }());
 
 /**
