@@ -1,3 +1,8 @@
+3.0.8:
+  date: 2025-08-28
+  refactor:
+    - Refactor `percent-encode.js` to not use Buffer.from(), which is not available in the browser
+
 3.0.7:
   date: 2025-03-27
   fixed bugs:
