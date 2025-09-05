@@ -42,6 +42,23 @@ function isPreEncodedCharacter (byte) {
 }
 
 /**
+ * Converts a string to a UTF-8 byte array.
+ *
+ * @private
+ * @param {String} value The string to convert.
+ * @returns {Array<Number>} The UTF-8 byte array.
+ */
+function stringToBytes (value) {
+    // Use TextEncoder if available, which is the case in modern browsers and Node.js v11+.
+    if (typeof TextEncoder === 'function') {
+        return new TextEncoder().encode(value);
+    }
+
+    // Fallback for Node.js v10 and older environments.
+    return Buffer.from(value);
+}
+
+/**
  * Checks if character at given index in the buffer is already percent encoded or not.
  *
  * @private
@@ -91,7 +108,7 @@ function encode (value, encodeSet) {
         ii,
         charCode,
         encoded = E,
-        buffer = Buffer.from(value);
+        buffer = stringToBytes(value);
 
     for (i = 0, ii = buffer.length; i < ii; ++i) {
         // avoid double encoding
