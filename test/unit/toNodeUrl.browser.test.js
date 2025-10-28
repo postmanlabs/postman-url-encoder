@@ -37,7 +37,6 @@ describe('[browser] .toNodeUrl', function () {
             }
         });
 
-        debugger;
         expect(toNodeUrl(url)).to.eql({
             protocol: 'postman:',
             slashes: false,

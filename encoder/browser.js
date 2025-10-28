@@ -87,13 +87,6 @@ const encodeSet = require('./encode-set'),
         catch (error) {
             return punycode.toASCII(domain);
         }
-
-        // try {
-        //     return punycode.toASCII(domain);
-        // }
-        // catch (error) {
-        //     return '';
-        // }
     };
 
 /**
