@@ -17,9 +17,8 @@
  * @see {@link https://url.spec.whatwg.org}
  */
 
-const querystring = require('querystring'),
-    parser = require('./parser'),
-    encoder = require('./encoder'),
+const parser = require('./parser'),
+    encoder = require('./encoder/browser'),
     QUERY_ENCODE_SET = require('./encoder/encode-set').QUERY_ENCODE_SET,
 
     E = '',
@@ -131,8 +130,13 @@ function encodeQueryString (query) {
         return E;
     }
 
-    // rely upon faster querystring module
-    query = querystring.stringify(query);
+    if (Array.isArray(query)) {
+        query = query.map((item, index) => {
+            return [index, item];
+        });
+    }
+
+    query = new URLSearchParams(query).toString();
 
     // encode characters not encoded by querystring.stringify() according to RFC3986.
     return query.replace(/[!'()*]/g, function (c) {

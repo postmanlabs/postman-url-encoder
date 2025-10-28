@@ -1,10 +1,22 @@
 {
   "name": "postman-url-encoder",
-  "version": "3.0.8",
+  "version": "4.0.0-beta.0",
   "description": "Implementation of the WHATWG URL Standard",
   "author": "Postman Inc.",
   "license": "Apache-2.0",
   "main": "index.js",
+  "exports": {
+    "browser": {
+      ".": "./browser.js",
+      "./encoder": "./encoder/browser.js",
+      "./parser": "./parser/index.js"
+    },
+    "default": {
+      ".": "./index.js",
+      "./encoder": "./encoder/index.js",
+      "./parser": "./parser/index.js"
+    }
+  },
   "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
   "bugs": {
     "url": "https://github.com/postmanlabs/postman-url-encoder/issues",
