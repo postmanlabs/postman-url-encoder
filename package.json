@@ -6,15 +6,17 @@
   "license": "Apache-2.0",
   "main": "index.js",
   "exports": {
-    "browser": {
-      ".": "./browser.js",
-      "./encoder": "./encoder/browser.js",
-      "./parser": "./parser/index.js"
+    ".": {
+      "browser": "./browser.js",
+      "default": "./index.js"
     },
-    "default": {
-      ".": "./index.js",
-      "./encoder": "./encoder/index.js",
-      "./parser": "./parser/index.js"
+    "./encoder": {
+      "browser": "./encoder/browser.js",
+      "default": "./encoder/index.js"
+    },
+    "./parser": {
+      "browser": "./parser/index.js",
+      "default": "./parser/index.js"
     }
   },
   "homepage": "https://github.com/postmanlabs/postman-url-encoder#readme",
