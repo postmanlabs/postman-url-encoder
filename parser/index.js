@@ -273,6 +273,24 @@ function parse (urlString) {
         url.host.endIndex = pointer + length;
     }
 
+    // Treat this as special case of Unix domain sockets, if:
+    // 1. the urlString is "unix",
+    // 2. the port is not null/undefined i.e ":" exists,
+    // 3. the port is not a number (i.e. it's not a valid port number).
+    // This ensure we only treat URLs in format protcol://unix:/absolute/socket/path:/http-path
+    // as unix domain socket URLs
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    if (urlString === 'unix' && url.port.value != null && isNaN(parseInt(url.port.value, 10))) {
+        url.host.value = ['unix'];
+        url.host.beginIndex = pointer;
+        url.host.endIndex = pointer + 4; // length of "unix"
+
+        // Clear the port since unix sockets don't have ports
+        url.port.value = undefined;
+        url.port.beginIndex = 0;
+        url.port.endIndex = 0;
+    }
+
     // apply replacements back, if any
     replacements.count() && applyReplacements(url, replacements);
 

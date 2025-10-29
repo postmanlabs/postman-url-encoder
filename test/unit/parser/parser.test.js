@@ -285,6 +285,139 @@ describe('parser', function () {
             expect(parser.parse({})).to.deep.include(defaultObject);
         });
 
+        describe('with Unix domain sockets', function () {
+            it('should parse basic Unix domain socket URL', function () {
+                expect(parser.parse('http://unix:/tmp/socket')).to.eql({
+                    raw: 'http://unix:/tmp/socket',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['tmp', 'socket'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+            it('should parse Unix domain socket URL with HTTP path', function () {
+                expect(parser.parse('http://unix:/var/run/app.sock:/api/users')).to.eql({
+                    raw: 'http://unix:/var/run/app.sock:/api/users',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['var', 'run', 'app.sock:', 'api', 'users'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+            it('should parse Unix domain socket URL with query parameters', function () {
+                expect(parser.parse('https://unix:/tmp/socket:/path?foo=bar&baz=qux')).to.eql({
+                    raw: 'https://unix:/tmp/socket:/path?foo=bar&baz=qux',
+                    protocol: 'https',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['tmp', 'socket:', 'path'],
+                    query: ['foo=bar', 'baz=qux'],
+                    hash: undefined
+                });
+            });
+
+            it('should parse Unix domain socket URL with hash', function () {
+                expect(parser.parse('http://unix:/run/socket.sock:/users#section')).to.eql({
+                    raw: 'http://unix:/run/socket.sock:/users#section',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['run', 'socket.sock:', 'users'],
+                    query: undefined,
+                    hash: 'section'
+                });
+            });
+
+            it('should parse Unix domain socket URL with query and hash', function () {
+                expect(parser.parse('http://unix:/tmp/app.sock:/api/data?limit=10&offset=0#results')).to.eql({
+                    raw: 'http://unix:/tmp/app.sock:/api/data?limit=10&offset=0#results',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['tmp', 'app.sock:', 'api', 'data'],
+                    query: ['limit=10', 'offset=0'],
+                    hash: 'results'
+                });
+            });
+
+            it('should handle Unix domain socket URL with auth', function () {
+                expect(parser.parse('http://user:pass@unix:/tmp/socket:/path')).to.eql({
+                    raw: 'http://user:pass@unix:/tmp/socket:/path',
+                    protocol: 'http',
+                    auth: ['user', 'pass'],
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['tmp', 'socket:', 'path'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+            it('should parse Unix domain socket URL with empty path segments', function () {
+                expect(parser.parse('http://unix:/tmp//double//slash.sock:/path//with//empty')).to.eql({
+                    raw: 'http://unix:/tmp//double//slash.sock:/path//with//empty',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['tmp', '', 'double', '', 'slash.sock:', 'path', '', 'with', '', 'empty'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+            it('should parse Unix domain socket URL with variables', function () {
+                expect(parser.parse('http://unix:/{{socketpath}}/app.sock:/{{apipath}}')).to.eql({
+                    raw: 'http://unix:/{{socketpath}}/app.sock:/{{apipath}}',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: undefined,
+                    path: ['{{socketpath}}', 'app.sock:', '{{apipath}}'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+
+            it('should not treat regular URLs with "unix" hostname as socket URLs', function () {
+                expect(parser.parse('http://unix:8080/path')).to.eql({
+                    raw: 'http://unix:8080/path',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix'],
+                    port: '8080',
+                    path: ['path'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+
+            it('should not treat URLs with "unix" in hostname but different domain as socket URLs', function () {
+                expect(parser.parse('http://unix.example.com/path')).to.eql({
+                    raw: 'http://unix.example.com/path',
+                    protocol: 'http',
+                    auth: undefined,
+                    host: ['unix', 'example', 'com'],
+                    port: undefined,
+                    path: ['path'],
+                    query: undefined,
+                    hash: undefined
+                });
+            });
+        });
+
         describe('with partial segments', function () {
             function testPartials (fixtures) {
                 fixtures.forEach(([test, result]) => {

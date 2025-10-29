@@ -41,6 +41,7 @@ const querystring = require('querystring'),
     PARAMS_SEPARATOR = '&',
     SEARCH_SEPARATOR = '#',
     DOMAIN_SEPARATOR = '.',
+    PORT_SEPARATOR = ':',
     AUTH_CREDENTIALS_SEPARATOR = '@',
 
     // @note this regular expression is referred from Node.js URL parser
@@ -290,7 +291,9 @@ function toNodeUrl (url, disableEncoding) {
     nodeUrl.path = nodeUrl.pathname = disableEncoding ? pathname : encoder.encodePath(pathname);
 
     // #href = protocol://user:password@host.name:port/p/a/t/h
-    nodeUrl.href += nodeUrl.pathname;
+    // @note if host is 'unix', then port separator is required
+    // to represent the socket+resource path - protocol://unix:<socket-path>:<resource-path>
+    nodeUrl.href += (nodeUrl.host === 'unix' ? PORT_SEPARATOR : '') + nodeUrl.pathname;
 
     if (typeof queryParams === STRING) {
         // #query

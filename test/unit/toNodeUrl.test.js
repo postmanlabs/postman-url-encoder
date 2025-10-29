@@ -767,4 +767,125 @@ describe('.toNodeUrl', function () {
             });
         });
     });
+
+    describe('with Unix domain sockets', function () {
+        it('should convert basic Unix domain socket URL', function () {
+            expect(toNodeUrl('http://unix:/tmp/socket.sock')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix',
+                port: null,
+                hostname: 'unix',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/tmp/socket.sock',
+                path: '/tmp/socket.sock',
+                href: 'http://unix:/tmp/socket.sock'
+            });
+        });
+
+        it('should convert Unix domain socket URL with HTTP path', function () {
+            expect(toNodeUrl('http://unix:/var/run/app.sock:/api/users')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix',
+                port: null,
+                hostname: 'unix',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/var/run/app.sock:/api/users',
+                path: '/var/run/app.sock:/api/users',
+                href: 'http://unix:/var/run/app.sock:/api/users'
+            });
+        });
+
+        it('should convert Unix domain socket URL with auth, query and hash', function () {
+            expect(toNodeUrl('http://user:pass@unix:/tmp/app.sock:/api/data?limit=10&offset=0#results')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: 'user:pass',
+                host: 'unix',
+                port: null,
+                hostname: 'unix',
+                hash: '#results',
+                search: '?limit=10&offset=0',
+                query: 'limit=10&offset=0',
+                pathname: '/tmp/app.sock:/api/data',
+                path: '/tmp/app.sock:/api/data?limit=10&offset=0',
+                href: 'http://user:pass@unix:/tmp/app.sock:/api/data?limit=10&offset=0#results'
+            });
+        });
+
+        it('should convert Unix domain socket URL with empty path segments', function () {
+            expect(toNodeUrl('http://unix:/tmp//double//slash.sock:/path//with//empty')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix',
+                port: null,
+                hostname: 'unix',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/tmp//double//slash.sock:/path//with//empty',
+                path: '/tmp//double//slash.sock:/path//with//empty',
+                href: 'http://unix:/tmp//double//slash.sock:/path//with//empty'
+            });
+        });
+
+        it('should convert Unix domain socket URL with variables', function () {
+            expect(toNodeUrl('http://unix:/{{socketpath}}/app.sock:/{{apipath}}')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix',
+                port: null,
+                hostname: 'unix',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/%7B%7Bsocketpath%7D%7D/app.sock:/%7B%7Bapipath%7D%7D',
+                path: '/%7B%7Bsocketpath%7D%7D/app.sock:/%7B%7Bapipath%7D%7D',
+                href: 'http://unix:/%7B%7Bsocketpath%7D%7D/app.sock:/%7B%7Bapipath%7D%7D'
+            });
+        });
+
+        it('should not treat regular URLs with "unix" hostname as socket URLs', function () {
+            expect(toNodeUrl('http://unix:8080/path')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix:8080',
+                port: '8080',
+                hostname: 'unix',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/path',
+                path: '/path',
+                href: 'http://unix:8080/path'
+            });
+        });
+
+        it('should not treat URLs with "unix" in hostname but different domain as socket URLs', function () {
+            expect(toNodeUrl('http://unix.example.com/path')).to.eql({
+                protocol: 'http:',
+                slashes: true,
+                auth: null,
+                host: 'unix.example.com',
+                port: null,
+                hostname: 'unix.example.com',
+                hash: null,
+                search: null,
+                query: null,
+                pathname: '/path',
+                path: '/path',
+                href: 'http://unix.example.com/path'
+            });
+        });
+    });
 });
